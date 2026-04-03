@@ -1,17 +1,7 @@
 package org.example.repository;
 
 import org.example.model.Cart;
-import org.hibernate.Session;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public class CartRepository {
-
-    private Session session;
-
-    public CartRepository(Session session) {
-        this.session = session;
-    }
-
-    public void saveCart(Cart cart) {
-        session.persist(cart);
-    }
+public interface CartRepository extends JpaRepository<Cart, Long> {
 }

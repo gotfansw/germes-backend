@@ -1,7 +1,8 @@
 package org.example.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+
 @Entity
 @Table(name = "cart_items")
 public class CartItem {
@@ -12,6 +13,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne
@@ -20,7 +22,6 @@ public class CartItem {
 
     private int quantity;
 
-    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

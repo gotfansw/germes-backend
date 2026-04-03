@@ -2,15 +2,19 @@ package org.example.service;
 
 import org.example.model.Category;
 import org.example.model.Product;
+import org.example.repository.CategoryRepository;
 import org.example.repository.ProductRepository;
-import org.hibernate.Session;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ProductService {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
-    public ProductService(Session session) {
-        this.productRepository = new ProductRepository(session);
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public Product createProduct(String name, double price, Category category) {
@@ -18,14 +22,12 @@ public class ProductService {
         p.setName(name);
         p.setPrice(price);
         p.setCategory(category);
-        productRepository.saveProduct(p);
-        return p;
+        return productRepository.save(p);
     }
 
     public Category createCategory(String name) {
         Category cat = new Category();
         cat.setName(name);
-        productRepository.saveCategory(cat);
-        return cat;
+        return categoryRepository.save(cat);
     }
 }

@@ -4,14 +4,15 @@ import org.example.model.Cart;
 import org.example.model.CartItem;
 import org.example.model.Product;
 import org.example.repository.CartRepository;
-import org.hibernate.Session;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CartService {
 
-    private CartRepository cartRepository;
+    private final CartRepository cartRepository;
 
-    public CartService(Session session) {
-        this.cartRepository = new CartRepository(session);
+    public CartService(CartRepository cartRepository) {
+        this.cartRepository = cartRepository;
     }
 
     public Cart addToCart(Product product, int quantity) {
@@ -23,8 +24,6 @@ public class CartService {
         item.setCart(cart);
 
         cart.getItems().add(item);
-        cartRepository.saveCart(cart);
-
-        return cart;
+        return cartRepository.save(cart);
     }
 }

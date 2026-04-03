@@ -12,14 +12,13 @@ public class Product {
     private String name;
     private Double price;
 
-    // Многие к одному: много продуктов относятся к одной категории
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
     public Product() {}
 
-    // Геттеры и сеттеры (Alt + Insert)
+    public Long getId() { return id; }          // ← добавили это
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public Double getPrice() { return price; }
