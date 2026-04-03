@@ -1,23 +1,34 @@
 package org.example.service;
 
 import org.example.model.*;
-import org.hibernate.Session;
-import java.time.LocalDateTime;
+import org.example.repository.CartRepository;
+import org.example.repository.OrderRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
 public class OrderService {
 
-    private Session session;
+    private final OrderRepository orderRepository;
+    private final CartRepository cartRepository;
 
-    public OrderService(Session session) {
-        this.session = session;
+    public OrderService(OrderRepository orderRepository, CartRepository cartRepository) {
+        this.orderRepository = orderRepository;
+        this.cartRepository = cartRepository;
     }
 
-    public Order placeOrder(Cart cart) {
-        // Создаём новый заказ
+    @Transactional
+    public Order placeOrder(Long cartId) {
+
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Корзина не найдена"));
+
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
 
-        // Переносим каждый товар из корзины в заказ
         for (CartItem cartItem : cart.getItems()) {
             OrderItem orderItem = new OrderItem();
             orderItem.setProductName(cartItem.getProduct().getName());
@@ -27,12 +38,12 @@ public class OrderService {
             order.getItems().add(orderItem);
         }
 
-        // Фиксируем итоговую сумму
         order.setTotalPrice(cart.getTotalPrice());
 
-        // Сохраняем заказ в БД
-        session.persist(order);
+        return orderRepository.save(order);
+    }
 
-        return order;
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 }
