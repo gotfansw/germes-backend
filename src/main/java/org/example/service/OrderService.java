@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.OrderDTO;
 import org.example.model.*;
 import org.example.repository.CartRepository;
 import org.example.repository.OrderRepository;
@@ -14,17 +15,24 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
+    private final CartService cartService;
 
-    public OrderService(OrderRepository orderRepository, CartRepository cartRepository) {
+    public OrderService(OrderRepository orderRepository,
+                        CartRepository cartRepository,
+                        CartService cartService) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
+        this.cartService = cartService;
     }
 
     @Transactional
-    public Order placeOrder(Long cartId) {
-
+    public OrderDTO placeOrder(Long cartId) {
         Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new RuntimeException("Корзина не найдена"));
+                .orElseThrow(() -> new RuntimeException("Корзина не найдена: " + cartId));
+
+        if (cart.getItems().isEmpty()) {
+            throw new RuntimeException("Нельзя оформить заказ: корзина пуста");
+        }
 
         Order order = new Order();
         order.setCreatedAt(LocalDateTime.now());
@@ -39,11 +47,28 @@ public class OrderService {
         }
 
         order.setTotalPrice(cart.getTotalPrice());
+        Order saved = orderRepository.save(order);
 
-        return orderRepository.save(order);
+
+        cartService.clearCart(cart);
+
+        return toDTO(saved);
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    private OrderDTO toDTO(Order order) {
+        List<OrderDTO.OrderItemDTO> itemDTOs = order.getItems().stream()
+                .map(i -> new OrderDTO.OrderItemDTO(
+                        i.getId(),
+                        i.getProductName(),
+                        i.getPrice(),
+                        i.getQuantity()))
+                .toList();
+        return new OrderDTO(order.getId(), order.getCreatedAt(), order.getTotalPrice(), itemDTOs);
     }
 }

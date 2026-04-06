@@ -1,6 +1,6 @@
 package org.example.controller;
 
-import org.example.model.Order;
+import org.example.dto.OrderDTO;
 import org.example.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,13 +16,14 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+
     @PostMapping("/place/{cartId}")
-    public Order placeOrder(@PathVariable Long cartId) {
+    public OrderDTO placeOrder(@PathVariable Long cartId) {
         return orderService.placeOrder(cartId);
     }
 
     @GetMapping
-    public List<Order> getAllOrders() {
+    public List<OrderDTO> getAllOrders() {
         return orderService.getAllOrders();
     }
 }

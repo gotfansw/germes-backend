@@ -1,6 +1,7 @@
 package org.example.controller;
 
-import org.example.model.Cart;
+import org.example.dto.AddToCartRequest;
+import org.example.dto.CartDTO;
 import org.example.model.Product;
 import org.example.repository.ProductRepository;
 import org.example.service.CartService;
@@ -18,11 +19,11 @@ public class CartController {
         this.productRepository = productRepository;
     }
 
+
     @PostMapping("/add")
-    public Cart addToCart(@RequestParam Long productId,
-                          @RequestParam int quantity) {
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Товар не найден"));
-        return cartService.addToCart(product, quantity);
+    public CartDTO addToCart(@RequestBody AddToCartRequest request) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Товар не найден: " + request.getProductId()));
+        return cartService.addToCart(request.getCartId(), product, request.getQuantity());
     }
 }

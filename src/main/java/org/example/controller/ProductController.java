@@ -1,9 +1,11 @@
 package org.example.controller;
 
+import org.example.dto.CategoryDTO;
+import org.example.dto.CreateCategoryRequest;
+import org.example.dto.CreateProductRequest;
+import org.example.dto.ProductDTO;
 import org.example.model.Category;
-import org.example.model.Product;
 import org.example.repository.CategoryRepository;
-import org.example.repository.ProductRepository;
 import org.example.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,32 +17,29 @@ public class ProductController {
 
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
-    private final ProductRepository productRepository;
 
     public ProductController(ProductService productService,
-                             CategoryRepository categoryRepository,
-                             ProductRepository productRepository) {
+                             CategoryRepository categoryRepository) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
-        this.productRepository = productRepository;
     }
 
+
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductDTO> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @PostMapping("/category")
-    public Category createCategory(@RequestParam String name) {
-        return productService.createCategory(name);
+    public CategoryDTO createCategory(@RequestBody CreateCategoryRequest request) {
+        return productService.createCategory(request.getName());
     }
 
+
     @PostMapping
-    public Product createProduct(@RequestParam String name,
-                                 @RequestParam double price,
-                                 @RequestParam Long categoryId) {
-        Category cat = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Категория не найдена"));
-        return productService.createProduct(name, price, cat);
+    public ProductDTO createProduct(@RequestBody CreateProductRequest request) {
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Категория не найдена: " + request.getCategoryId()));
+        return productService.createProduct(request.getName(), request.getPrice(), category);
     }
 }

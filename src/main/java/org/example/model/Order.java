@@ -15,7 +15,7 @@ public class Order {
 
     private LocalDateTime createdAt;
 
-    @Column(name = "totalprice", nullable = false)
+    @Column(name = "total_price", nullable = false)
     private double totalPrice;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
