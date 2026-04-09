@@ -1,13 +1,13 @@
 package org.example.service;
 
 import org.example.dto.OrderDTO;
+import org.example.exception.NotFoundException;
 import org.example.model.*;
 import org.example.repository.CartRepository;
 import org.example.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,16 +26,15 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDTO placeOrder(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new RuntimeException("Корзина не найдена: " + cartId));
+    public OrderDTO placeOrder(String sessionId) {
+        Cart cart = cartRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new NotFoundException("Корзина не найдена для сессии"));
 
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Нельзя оформить заказ: корзина пуста");
+            throw new IllegalStateException("Нельзя оформить заказ: корзина пуста");
         }
 
         Order order = new Order();
-        order.setCreatedAt(LocalDateTime.now());
 
         for (CartItem cartItem : cart.getItems()) {
             OrderItem orderItem = new OrderItem();
@@ -48,7 +47,6 @@ public class OrderService {
 
         order.setTotalPrice(cart.getTotalPrice());
         Order saved = orderRepository.save(order);
-
 
         cartService.clearCart(cart);
 

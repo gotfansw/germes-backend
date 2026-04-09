@@ -1,11 +1,10 @@
 package org.example.controller;
 
+import jakarta.validation.Valid;
 import org.example.dto.CategoryDTO;
 import org.example.dto.CreateCategoryRequest;
 import org.example.dto.CreateProductRequest;
 import org.example.dto.ProductDTO;
-import org.example.model.Category;
-import org.example.repository.CategoryRepository;
 import org.example.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +16,10 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final CategoryRepository categoryRepository;
 
-    public ProductController(ProductService productService,
-                             CategoryRepository categoryRepository) {
+    // CategoryRepository убран — поиск категории теперь внутри сервиса
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping
@@ -31,7 +28,7 @@ public class ProductController {
     }
 
     @PostMapping("/category")
-    public CategoryDTO createCategory(@RequestBody CreateCategoryRequest request) {
+    public CategoryDTO createCategory(@Valid @RequestBody CreateCategoryRequest request) {
         return productService.createCategory(request.getName());
     }
 
@@ -47,18 +44,15 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductDTO createProduct(@RequestBody CreateProductRequest request) {
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Категория не найдена: " + request.getCategoryId()));
-        return productService.createProduct(request.getName(), request.getPrice(), category);
+    public ProductDTO createProduct(@Valid @RequestBody CreateProductRequest request) {
+        // categoryId передаём в сервис, не ищем категорию в контроллере
+        return productService.createProduct(request.getName(), request.getPrice(), request.getCategoryId());
     }
 
     @PutMapping("/{id}")
     public ProductDTO updateProduct(@PathVariable Long id,
-                                    @RequestBody CreateProductRequest request) {
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Категория не найдена: " + request.getCategoryId()));
-        return productService.updateProduct(id, request.getName(), request.getPrice(), category);
+                                    @Valid @RequestBody CreateProductRequest request) {
+        return productService.updateProduct(id, request.getName(), request.getPrice(), request.getCategoryId());
     }
 
     @DeleteMapping("/{id}")

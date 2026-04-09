@@ -1,12 +1,15 @@
 package org.example.dto;
 
-public class AddToCartRequest {
-    private Long cartId;      // null — создать новую корзину, не null — добавить в существующую
-    private Long productId;
-    private int quantity;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
-    public Long getCartId() { return cartId; }
-    public void setCartId(Long cartId) { this.cartId = cartId; }
+public class AddToCartRequest {
+
+    @NotNull(message = "ID товара обязателен")
+    private Long productId;
+
+    @Min(value = 1, message = "Количество должно быть не меньше 1")
+    private int quantity;
 
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }

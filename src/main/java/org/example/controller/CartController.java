@@ -1,9 +1,9 @@
 package org.example.controller;
 
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.example.dto.AddToCartRequest;
 import org.example.dto.CartDTO;
-import org.example.model.Product;
-import org.example.repository.ProductRepository;
 import org.example.service.CartService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,18 +12,37 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
-    private final ProductRepository productRepository;
 
-    public CartController(CartService cartService, ProductRepository productRepository) {
+    public CartController(CartService cartService) {
         this.cartService = cartService;
-        this.productRepository = productRepository;
     }
 
-
     @PostMapping("/add")
-    public CartDTO addToCart(@RequestBody AddToCartRequest request) {
-        Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new RuntimeException("Товар не найден: " + request.getProductId()));
-        return cartService.addToCart(request.getCartId(), product, request.getQuantity());
+    public CartDTO addToCart(@Valid @RequestBody AddToCartRequest request,
+                             @RequestHeader(value = "X-Session-Id", required = false) String headerSession,
+                             HttpSession session) {
+        String sessionId = (headerSession != null && !headerSession.isBlank())
+                ? headerSession
+                : session.getId();
+        return cartService.addToCart(sessionId, request.getProductId(), request.getQuantity());
+    }
+
+    @GetMapping
+    public CartDTO getCart(@RequestHeader(value = "X-Session-Id", required = false) String headerSession,
+                           HttpSession session) {
+        String sessionId = (headerSession != null && !headerSession.isBlank())
+                ? headerSession
+                : session.getId();
+        return cartService.getCart(sessionId);
+    }
+
+    @DeleteMapping("/item/{itemId}")
+    public CartDTO removeFromCart(@PathVariable Long itemId,
+                                  @RequestHeader(value = "X-Session-Id", required = false) String headerSession,
+                                  HttpSession session) {
+        String sessionId = (headerSession != null && !headerSession.isBlank())
+                ? headerSession
+                : session.getId();
+        return cartService.removeFromCart(sessionId, itemId);
     }
 }

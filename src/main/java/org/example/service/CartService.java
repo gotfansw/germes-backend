@@ -1,40 +1,59 @@
 package org.example.service;
 
 import org.example.dto.CartDTO;
+import org.example.exception.NotFoundException;
+import org.example.mapper.CartMapper;
 import org.example.model.Cart;
 import org.example.model.CartItem;
 import org.example.model.Product;
 import org.example.repository.CartRepository;
+import org.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class CartService {
 
     private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
+    private final CartMapper cartMapper;
 
-    public CartService(CartRepository cartRepository) {
+    public CartService(CartRepository cartRepository,
+                       ProductRepository productRepository,
+                       CartMapper cartMapper) {
         this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
+        this.cartMapper = cartMapper;
     }
 
     @Transactional
-    public CartDTO addToCart(Long cartId, Product product, int quantity) {
-        Cart cart;
+    public Cart getOrCreateCart(String sessionId) {
+        return cartRepository.findBySessionId(sessionId)
+                .orElseGet(() -> {
+                    Cart cart = new Cart();
+                    cart.setSessionId(sessionId);
+                    return cartRepository.save(cart);
+                });
+    }
 
-        if (cartId == null) {
+    @Transactional
+    public CartDTO addToCart(String sessionId, Long productId, int quantity) {
+        Cart cart = cartRepository.findBySessionId(sessionId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setSessionId(sessionId);
+                    return cartRepository.save(newCart);
+                });
 
-            cart = new Cart();
-        } else {
+        cart = cartRepository.findByIdWithLock(cart.getId())
+                .orElseThrow(() -> new NotFoundException("Корзина не найдена"));
 
-            cart = cartRepository.findById(cartId)
-                    .orElseThrow(() -> new RuntimeException("Корзина не найдена: " + cartId));
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Товар не найден: " + productId));
 
-        // Если товар уже есть в корзине — увеличиваем количество
+        Cart finalCart = cart;
         cart.getItems().stream()
-                .filter(i -> i.getProduct().getId().equals(product.getId()))
+                .filter(i -> i.getProduct().getId().equals(productId))
                 .findFirst()
                 .ifPresentOrElse(
                         existing -> existing.setQuantity(existing.getQuantity() + quantity),
@@ -42,30 +61,33 @@ public class CartService {
                             CartItem item = new CartItem();
                             item.setProduct(product);
                             item.setQuantity(quantity);
-                            item.setCart(cart);
-                            cart.getItems().add(item);
+                            item.setCart(finalCart);
+                            finalCart.getItems().add(item);
                         }
                 );
 
-        Cart saved = cartRepository.save(cart);
-        return toDTO(saved);
+        return cartMapper.toDTO(cartRepository.save(cart));
     }
 
+    // Возвращает пустую корзину если сессия новая — не бросает 404
+    @Transactional(readOnly = true)
+    public CartDTO getCart(String sessionId) {
+        return cartRepository.findBySessionId(sessionId)
+                .map(cartMapper::toDTO)
+                .orElseGet(CartDTO::new);
+    }
+
+    @Transactional
+    public CartDTO removeFromCart(String sessionId, Long itemId) {
+        Cart cart = cartRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new NotFoundException("Корзина не найдена"));
+        cart.getItems().removeIf(item -> item.getId().equals(itemId));
+        return cartMapper.toDTO(cartRepository.save(cart));
+    }
 
     @Transactional
     public void clearCart(Cart cart) {
         cart.getItems().clear();
         cartRepository.save(cart);
-    }
-
-    public CartDTO toDTO(Cart cart) {
-        List<CartDTO.CartItemDTO> itemDTOs = cart.getItems().stream()
-                .map(i -> new CartDTO.CartItemDTO(
-                        i.getId(),
-                        i.getProduct().getName(),
-                        i.getProduct().getPrice(),
-                        i.getQuantity()))
-                .toList();
-        return new CartDTO(cart.getId(), itemDTOs, cart.getTotalPrice());
     }
 }

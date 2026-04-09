@@ -1,11 +1,13 @@
 package org.example.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,37 +24,41 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Value("${ADMIN_PASSWORD}")
+    private String adminPassword;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
                 .authorizeHttpRequests(auth -> auth
-                        // GET запросы — доступны всем (для сайта)
+                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/img/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").permitAll()
-                        // Всё остальное — только админ
+                        .requestMatchers("/api/cart/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders/place/**").permitAll()
                         .anyRequest().hasRole("ADMIN")
                 )
-                .httpBasic(httpBasic -> {}); // Basic Auth, Spring Security 6.x стиль
+                .httpBasic(httpBasic -> {});
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // Разреши нужные origins (поменяй под свой фронт)
         config.setAllowedOrigins(List.of(
-                "null",
-                "http://localhost:3000",   // React dev
-                "http://localhost:5173",   // Vite dev
-                "http://localhost:8080"    // или сам сервер
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://localhost:8080"
         ));
-
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // нужно для Basic Auth с браузера
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -64,7 +70,7 @@ public class SecurityConfig {
         return new InMemoryUserDetailsManager(
                 User.builder()
                         .username("admin")
-                        .password(encoder.encode("germes")) // ← поменяй пароль
+                        .password(encoder.encode(adminPassword))
                         .roles("ADMIN")
                         .build()
         );

@@ -1,15 +1,16 @@
 package org.example.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderDTO {
     private Long id;
     private LocalDateTime createdAt;
-    private double totalPrice;
+    private BigDecimal totalPrice;
     private List<OrderItemDTO> items;
 
-    public OrderDTO(Long id, LocalDateTime createdAt, double totalPrice, List<OrderItemDTO> items) {
+    public OrderDTO(Long id, LocalDateTime createdAt, BigDecimal totalPrice, List<OrderItemDTO> items) {
         this.id = id;
         this.createdAt = createdAt;
         this.totalPrice = totalPrice;
@@ -18,16 +19,16 @@ public class OrderDTO {
 
     public Long getId() { return id; }
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public double getTotalPrice() { return totalPrice; }
+    public BigDecimal getTotalPrice() { return totalPrice; }
     public List<OrderItemDTO> getItems() { return items; }
 
     public static class OrderItemDTO {
         private Long id;
         private String productName;
-        private double price;
+        private BigDecimal price;
         private int quantity;
 
-        public OrderItemDTO(Long id, String productName, double price, int quantity) {
+        public OrderItemDTO(Long id, String productName, BigDecimal price, int quantity) {
             this.id = id;
             this.productName = productName;
             this.price = price;
@@ -36,7 +37,7 @@ public class OrderDTO {
 
         public Long getId() { return id; }
         public String getProductName() { return productName; }
-        public double getPrice() { return price; }
+        public BigDecimal getPrice() { return price; }
         public int getQuantity() { return quantity; }
     }
 }
