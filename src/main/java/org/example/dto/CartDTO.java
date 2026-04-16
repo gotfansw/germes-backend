@@ -9,7 +9,6 @@ public class CartDTO {
     private List<CartItemDTO> items;
     private BigDecimal totalPrice;
 
-    // Пустой конструктор — нужен для getCart когда корзины ещё нет
     public CartDTO() {
         this.items = new ArrayList<>();
         this.totalPrice = BigDecimal.ZERO;
@@ -31,15 +30,17 @@ public class CartDTO {
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice != null ? totalPrice : BigDecimal.ZERO; }
 
     public static class CartItemDTO {
-        private Long id;
+        private Long id;         // id записи в cart_items
+        private Long productId;  // id продукта (для картинки)
         private String productName;
         private BigDecimal price;
         private int quantity;
 
         public CartItemDTO() {}
 
-        public CartItemDTO(Long id, String productName, BigDecimal price, int quantity) {
+        public CartItemDTO(Long id, Long productId, String productName, BigDecimal price, int quantity) {
             this.id = id;
+            this.productId = productId;
             this.productName = productName;
             this.price = price;
             this.quantity = quantity;
@@ -47,6 +48,9 @@ public class CartDTO {
 
         public Long getId() { return id; }
         public void setId(Long id) { this.id = id; }
+
+        public Long getProductId() { return productId; }
+        public void setProductId(Long productId) { this.productId = productId; }
 
         public String getProductName() { return productName; }
         public void setProductName(String productName) { this.productName = productName; }

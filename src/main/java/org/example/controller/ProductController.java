@@ -37,6 +37,12 @@ public class ProductController {
         return productService.getAllCategories();
     }
 
+    @PutMapping("/category/{id}")
+    public CategoryDTO updateCategory(@PathVariable Long id,
+                                      @Valid @RequestBody CreateCategoryRequest request) {
+        return productService.updateCategory(id, request.getName());
+    }
+
     @DeleteMapping("/category/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         productService.deleteCategory(id);

@@ -70,6 +70,14 @@ public class ProductService {
                 .toList();
     }
 
+    @Transactional
+    public CategoryDTO updateCategory(Long id, String name) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена: " + id));
+        category.setName(name);
+        return productMapper.toDTO(categoryRepository.save(category));
+    }
+
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new NotFoundException("Категория не найдена: " + id);

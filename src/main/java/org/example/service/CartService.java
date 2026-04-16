@@ -38,13 +38,7 @@ public class CartService {
 
     @Transactional
     public CartDTO addToCart(String sessionId, Long productId, int quantity) {
-        Cart cart = cartRepository.findBySessionId(sessionId)
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setSessionId(sessionId);
-                    return cartRepository.save(newCart);
-                });
-
+        Cart cart = getOrCreateCart(sessionId);
         cart = cartRepository.findByIdWithLock(cart.getId())
                 .orElseThrow(() -> new NotFoundException("Корзина не найдена"));
 
@@ -69,7 +63,6 @@ public class CartService {
         return cartMapper.toDTO(cartRepository.save(cart));
     }
 
-    // Возвращает пустую корзину если сессия новая — не бросает 404
     @Transactional(readOnly = true)
     public CartDTO getCart(String sessionId) {
         return cartRepository.findBySessionId(sessionId)
@@ -78,10 +71,36 @@ public class CartService {
     }
 
     @Transactional
+    public CartDTO updateCartItem(String sessionId, Long itemId, int quantity) {
+        Cart cart = cartRepository.findBySessionId(sessionId)
+                .orElseThrow(() -> new NotFoundException("Корзина не найдена"));
+
+        CartItem item = cart.getItems().stream()
+                .filter(i -> i.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Позиция корзины не найдена: " + itemId));
+
+        item.setQuantity(quantity);
+        return cartMapper.toDTO(cartRepository.save(cart));
+    }
+
+    @Transactional
     public CartDTO removeFromCart(String sessionId, Long itemId) {
         Cart cart = cartRepository.findBySessionId(sessionId)
                 .orElseThrow(() -> new NotFoundException("Корзина не найдена"));
         cart.getItems().removeIf(item -> item.getId().equals(itemId));
+        return cartMapper.toDTO(cartRepository.save(cart));
+    }
+
+    @Transactional
+    public CartDTO clearCart(String sessionId) {
+        Cart cart = cartRepository.findBySessionId(sessionId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setSessionId(sessionId);
+                    return cartRepository.save(newCart);
+                });
+        cart.getItems().clear();
         return cartMapper.toDTO(cartRepository.save(cart));
     }
 

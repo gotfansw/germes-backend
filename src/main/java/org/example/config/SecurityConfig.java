@@ -24,8 +24,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${ADMIN_PASSWORD}")
-    private String adminPassword;
+    private String adminPassword = "1234";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,7 +38,11 @@ public class SecurityConfig {
                         .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/img/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers("/api/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/place/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/orders/place").permitAll()
+                        .requestMatchers(HttpMethod.PATCH, "/api/orders/*/payment-status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/payment-status").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/sbp-qr").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*/pay").permitAll()
                         .anyRequest().hasRole("ADMIN")
                 )
                 .httpBasic(httpBasic -> {});
@@ -56,7 +59,7 @@ public class SecurityConfig {
                 "http://localhost:5500",
                 "http://localhost:8080"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
