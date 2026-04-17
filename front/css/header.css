@@ -1,0 +1,155 @@
+/* =====================================================
+   HEADER.CSS — верхняя полоса с логотипом, поиском и корзиной
+   ===================================================== */
+
+/* Обёртка всей верхней полосы */
+.header {
+  background: var(--color-bg-white);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 0;
+}
+
+/* Flexbox-строка внутри header: лого | слоган | поиск | корзина */
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+
+/* --- ЛОГОТИП --- */
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* не сжимается при нехватке места */
+  text-decoration: none;
+}
+
+.logo__wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Красный прямоугольник с названием */
+.logo__mark {
+  background: var(--color-red);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 3px;
+  letter-spacing: -0.5px;
+}
+
+/* Мелкий текст «гермес74.рф» под логотипом */
+.logo__sub {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  color: var(--color-red);
+  text-align: center;
+}
+
+
+/* --- СЛОГАН + ТЕЛЕФОН --- */
+
+/* Занимает всё свободное пространство между лого и поиском */
+.header__tagline {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-dark);
+  line-height: 1.3;
+}
+
+/* Телефон внутри блока слогана */
+.header__tagline span {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+
+/* --- ФОРМА ПОИСКА --- */
+
+.search-form {
+  display: flex;
+  flex-shrink: 0; /* не сжимается */
+}
+
+.search-form__input {
+  border: 1px solid var(--color-border);
+  border-right: none; /* убираем правую границу — кнопка вплотную */
+  padding: 8px 14px;
+  font-size: 13px;
+  outline: none;
+  width: 240px;
+  border-radius: var(--radius) 0 0 var(--radius); /* скруглён только слева */
+  transition: border-color 0.2s;
+}
+
+.search-form__input:focus {
+  border-color: var(--color-red); /* подсветка при фокусе */
+}
+
+.search-form__btn {
+  background: var(--color-red);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 0 var(--radius) var(--radius) 0; /* скруглён только справа */
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.search-form__btn:hover {
+  background: var(--color-red-hover);
+}
+
+
+/* --- КНОПКА КОРЗИНЫ --- */
+
+.cart-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  position: relative; /* нужно для позиционирования счётчика */
+  color: var(--color-dark);
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.cart-btn:hover {
+  color: var(--color-red);
+}
+
+.cart-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Красный кружок со счётчиком товаров */
+.cart-btn__count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--color-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

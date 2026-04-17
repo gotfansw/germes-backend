@@ -1,0 +1,187 @@
+/* =====================================================
+   FOOTER.CSS — подвал сайта
+   ===================================================== */
+footer {
+  background: var(--color-footer-bg);
+  color: var(--color-footer-txt);
+  padding: 36px 0 0;
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer__cell {
+  padding: 20px 20px 20px;
+  margin: 20px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer__col-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 16px;
+}
+
+/* --- НАВИГАЦИЯ --- */
+.footer__links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.footer__links a {
+  font-size: 13px;
+  color: var(--color-footer-txt);
+  text-decoration: none;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  width: 100%;
+  text-align: center;
+  transition: color 0.15s;
+}
+.footer__links a:last-child { border-bottom: none; }
+.footer__links a:hover { color: #fff; }
+
+/* --- О НАС --- */
+.footer__about {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--color-footer-txt);
+  text-align: center;
+}
+
+/* --- КОНТАКТЫ --- */
+.footer__contacts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.footer__contact-item {
+  font-size: 13px;
+  color: var(--color-footer-txt);
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  width: 100%;
+  text-align: center;
+}
+.footer__contact-item:last-child { border-bottom: none; }
+
+.footer__contact-item strong {
+  display: block;
+  font-size: 11px;
+  color: #aaa;
+  font-weight: 400;
+  margin-bottom: 2px;
+}
+
+.footer__contact-item a {
+  color: var(--color-footer-txt);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer__contact-item a:hover { color: #fff; }
+
+/* --- ВРЕМЯ РАБОТЫ --- */
+.footer__hours {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.footer__hour-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+.footer__hour-row:last-child { border-bottom: none; }
+.footer__hour-day { color: #aaa; }
+.footer__hour-time { color: #fff; font-weight: 500; }
+
+/* --- НИЖНЯЯ ПОЛОСА --- */
+.footer__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  font-size: 12px;
+  color: #888;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.footer__bottom a {
+  color: #888;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer__bottom a:hover { color: #ccc; }
+
+/* ── АДАПТИВ ── */
+
+@media (max-width: 1100px) and (min-width: 768px) {
+  .footer__cell { padding: 220px 16px 26px; }
+}
+
+/* Планшет — 2 × 2 */
+@media (max-width: 767px) and (min-width: 480px) {
+  .footer__grid { grid-template-columns: repeat(2, 1fr); }
+  .footer__cell { padding: 22px 18px 26px; }
+  .footer__bottom { flex-direction: column; gap: 6px; text-align: center; }
+}
+
+/* Телефон — 1 колонка */
+@media (max-width: 479px) {
+  footer {
+    padding: 28px 0 0;
+    overflow-x: hidden;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr;
+    border-left: none;
+    border-right: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .footer__cell {
+    margin: 0;
+    padding: 18px 16px 22px;
+    border-right: none;
+    border-left: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .footer__col-title { font-size: 10px; }
+
+  .footer__hour-row {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .footer__bottom {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+    font-size: 11px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+  }
+}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>О нас — Germes74</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/site-pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="about">
+  <div id="appHeader"></div>
+
+  <main class="page site-page">
+    <div class="container">
+      <section class="about-hero">
+        <div class="about-hero__content">
+          <div class="page-eyebrow">О компании</div>
+          <h1 class="about-title">Гермес 74 — расходные материалы для шиномонтажа</h1>
+          <p class="about-lead">
+            Мы поставляем балансировочные грузики и сопутствующие материалы для шиномонтажных мастерских,
+            автосервисов и оптовых покупателей. Делаем упор на стабильное качество, наличие товара на складе
+            и понятные сроки отгрузки.
+          </p>
+        </div>
+        <div class="about-hero__stats">
+          <div class="about-stat"><b>21+</b><span>год на рынке</span></div>
+          <div class="about-stat"><b>31</b><span>товар в каталоге</span></div>
+          <div class="about-stat"><b>1 день</b><span>отгрузка по Челябинску</span></div>
+        </div>
+      </section>
+
+      <section class="about-grid">
+        <article class="info-card">
+          <h2 class="page-card-title">Чем занимаемся</h2>
+          <p>
+            Производим и поставляем расходные материалы для шиномонтажа: набивные грузики для литых и
+            штампованных дисков, самоклеящиеся варианты, а также готовим отгрузку по России.
+          </p>
+          <ul class="page-list">
+            <li>товар в наличии на складе</li>
+            <li>работа с розничными и оптовыми заказами</li>
+            <li>отгрузка через СДЭК, Деловые Линии, Почту России</li>
+            <li>поддержка по подбору товара под тип диска</li>
+          </ul>
+        </article>
+
+        <article class="info-card">
+          <h2 class="page-card-title">Почему выбирают нас</h2>
+          <ul class="page-list">
+            <li>понятный каталог и быстрый подбор по весу и типу крепления</li>
+            <li>стабильные цены без лишних посредников</li>
+            <li>аккуратная упаковка и отправка в день оплаты</li>
+            <li>после отправки предоставляем трек-номер для отслеживания заказа</li>
+          </ul>
+        </article>
+
+        <article class="info-card">
+          <h2 class="page-card-title">Кому подойдёт</h2>
+          <p>
+            Наши товары подходят для шиномонтажных мастерских, СТО, магазинов расходников и частных клиентов,
+            которым нужен понятный и быстрый заказ без долгого согласования.
+          </p>
+        </article>
+
+        <article class="info-card">
+          <h2 class="page-card-title">Как работаем</h2>
+          <div class="mini-steps">
+            <div><span>1</span><p>Получаем заявку на сайте или по телефону</p></div>
+            <div><span>2</span><p>Подтверждаем заказ и наличие</p></div>
+            <div><span>3</span><p>Отгружаем и отправляем трек-номер</p></div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <div id="appFooter"></div>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => window.GERMES.renderShell("about"));
+  </script>
+</body>
+</html>

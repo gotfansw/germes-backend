@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Доставка — Germes74</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/site-pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="delivery">
+  <div id="appHeader"></div>
+
+  <main class="page site-page">
+    <div class="container">
+      <section class="delivery-steps">
+        <div class="step-item"><span>1</span><div><b>Оформите заказ</b><small>на сайте или по телефону</small></div></div>
+        <div class="step-item"><span>2</span><div><b>Подтверждение</b><small>менеджер перезвонит</small></div></div>
+        <div class="step-item"><span>3</span><div><b>Отгрузка</b><small>в день оплаты до 15:30</small></div></div>
+        <div class="step-item"><span>4</span><div><b>Доставка</b><small>1–5 дней по России</small></div></div>
+      </section>
+
+      <section class="delivery-grid">
+        <div>
+          <div class="promo-card">
+            <h2>Бесплатная доставка</h2>
+          </div>
+
+          <div class="info-card">
+            <h2 class="page-card-title">Способы доставки</h2>
+            <div class="delivery-method">
+              <b>СДЭК</b>
+              <p>До пункта выдачи или курьером до двери. Отслеживание посылки в личном кабинете.</p>
+            </div>
+            <div class="delivery-method">
+              <b>Деловые Линии</b>
+              <p>Для крупного и тяжёлого заказа. Доставка до терминала или на адрес.</p>
+            </div>
+            <div class="delivery-method">
+              <b>Самовывоз</b>
+              <p>г. Челябинск, ул. Молодогвардейцев, 7/3. Пн–Пт 9:00–18:00.</p>
+            </div>
+            <div class="delivery-method">
+              <b>Почта России</b>
+              <p>В отдалённые регионы, где нет СДЭК или Деловых Линий.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="info-card">
+            <h2 class="page-card-title">Сроки по регионам</h2>
+            <table class="delivery-table">
+              <thead>
+                <tr><th>Регион</th><th>СДЭК</th><th>Дел. Линии</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Урал (Екб, Пермь, Тюмень)</td><td>1–2 дня</td><td>2–3 дня</td></tr>
+                <tr><td>Москва и МО</td><td>2–3 дня</td><td>3–4 дня</td></tr>
+                <tr><td>Санкт-Петербург</td><td>2–3 дня</td><td>3–5 дней</td></tr>
+                <tr><td>Сибирь (Нск, Омск)</td><td>2–4 дня</td><td>3–5 дней</td></tr>
+                <tr><td>Юг России (Краснодар)</td><td>3–4 дня</td><td>4–6 дней</td></tr>
+                <tr><td>Дальний Восток</td><td>5–7 дней</td><td>7–10 дней</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="info-card">
+            <h2 class="page-card-title">Условия</h2>
+            <ul class="delivery-conditions">
+              <li>Отгрузка в день оплаты, если оплата поступила до 15:00 по Челябинскому времени (UTC+5).</li>
+              <li>Стоимость доставки рассчитывается при оформлении заказа по тарифам перевозчика.</li>
+              <li>Каждый заказ упакован в транспортную тару и защищён от повреждений.</li>
+              <li>При получении проверьте целостность упаковки в присутствии курьера.</li>
+              <li>После отправки заказа мы предоставляем трек-номер для отслеживания доставки.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="appFooter"></div>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => window.GERMES.renderShell("delivery"));
+  </script>
+</body>
+</html>

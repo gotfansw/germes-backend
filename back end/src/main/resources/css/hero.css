@@ -1,0 +1,45 @@
+/* =====================================================
+   HERO.CSS — главный баннер под навигацией
+   ===================================================== */
+
+.hero {
+  background: var(--color-bg-white);
+  overflow: hidden;
+}
+
+.hero__inner {
+  display: flex;
+  align-items: stretch;
+  min-height: 300px;
+}
+
+.hero__image {
+  flex: 0 0 58%;
+  overflow: hidden;
+}
+
+.hero__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.hero__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--color-bg-light);
+  padding: 40px 48px;
+  gap: 20px;
+}
+
+.hero__title {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--color-dark);
+  max-width: 420px;
+}

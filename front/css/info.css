@@ -1,0 +1,71 @@
+/* =====================================================
+   INFO.CSS — секция «Полезная информация»
+   ===================================================== */
+
+.info-section {
+  padding: 40px 0 48px;
+  background: #fff;
+}
+
+/* Красный подзаголовок */
+.info-label {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-red);
+  margin-bottom: 28px;
+}
+
+/* Два столбца: текст слева, цифры справа */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+}
+
+/* Оба столбца: серая вертикальная полоса */
+.info-left,
+.info-right {
+  border-left: 3px solid #ddd;
+  padding-left: 20px;
+  position: relative;
+}
+
+/* Красный кружок-маркер у полосы */
+.info-left::before,
+.info-right::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  background: var(--color-red);
+  border-radius: 50%;
+}
+
+.info-left p {
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+/* Блок статистики */
+.info-stat {
+  margin-bottom: 18px;
+}
+
+.info-stat:last-child {
+  margin-bottom: 0;
+}
+
+.info-stat__num {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-dark);
+}
+
+.info-stat__text {
+  font-size: 13px;
+  color: var(--color-muted);
+}

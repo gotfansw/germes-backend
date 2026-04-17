@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Корзина — Germes74</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <style>
+    /* ── Модалка оформления заказа ─────────────────────────── */
+    .order-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .order-modal.is-open { display: flex; }
+
+    .order-modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      cursor: pointer;
+    }
+
+    .order-modal__dialog {
+      position: relative;
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px 28px 28px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,.18);
+      z-index: 1;
+    }
+
+    .order-modal__close {
+      position: absolute;
+      top: 14px; right: 18px;
+      background: none; border: none;
+      font-size: 24px; cursor: pointer;
+      color: #888; line-height: 1;
+    }
+    .order-modal__close:hover { color: #222; }
+
+    .order-modal__title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #111;
+    }
+    .order-modal__subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 22px;
+    }
+
+    /* ── Поля формы ─────────────────────────────────────────── */
+    .order-field {
+      margin-bottom: 16px;
+    }
+    .order-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .order-field input,
+    .order-field select,
+    .order-field textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #111;
+      background: #fafafa;
+      box-sizing: border-box;
+      transition: border-color .18s;
+      outline: none;
+    }
+    .order-field input:focus,
+    .order-field select:focus,
+    .order-field textarea:focus {
+      border-color: #d00;
+      background: #fff;
+    }
+    .order-field input.invalid,
+    .order-field select.invalid {
+      border-color: #e33;
+    }
+    .order-field__error {
+      font-size: 12px;
+      color: #d00;
+      margin-top: 4px;
+      display: none;
+    }
+    .order-field__error.visible { display: block; }
+
+    /* Доставка — radio-карточки */
+    .delivery-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .delivery-option {
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      padding: 10px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .18s, background .18s;
+      user-select: none;
+    }
+    .delivery-option input { display: none; }
+    .delivery-option__icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .delivery-option__name { font-size: 12px; font-weight: 600; color: #333; }
+    .delivery-option:has(input:checked) {
+      border-color: #d00;
+      background: #fff5f5;
+    }
+    .delivery-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 8px;
+    }
+
+    /* Итог */
+    .order-modal__total {
+      background: #f7f7f7;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-modal__total span { font-size: 15px; color: #555; }
+    .order-modal__total b { font-size: 18px; color: #111; }
+
+    /* Кнопка */
+    .btn-order-pay {
+      width: 100%;
+      padding: 14px;
+      background: #d00;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: 'Oswald', sans-serif;
+      cursor: pointer;
+      letter-spacing: .5px;
+      transition: background .18s, opacity .18s;
+    }
+    .btn-order-pay:hover { background: #b00; }
+    .btn-order-pay:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Статус / ошибка */
+    .order-status {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 12px;
+      min-height: 20px;
+      color: #d00;
+    }
+    .order-status.ok { color: #16a34a; }
+
+    /* СБП-лого */
+    .sbp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f0f0;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    .sbp-badge__dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff3b30, #ff9500, #34c759);
+    }
+  </style>
+</head>
+<body data-page="cart">
+  <div id="appHeader"></div>
+  <main class="page">
+    <div class="container">
+      <div class="cart-top">
+        <div class="crumbs">
+          <a href="index.html">Главная</a>
+          <span> / </span>
+          <span>Моя корзина</span>
+        </div>
+        <button class="btn cart-clear" type="button" id="clearCartTop">Очистить корзину</button>
+      </div>
+      <section class="cart-page">
+        <div id="cartEmpty" class="card cart-empty" style="display:none;">Корзина пуста.</div>
+        <div id="cartList" class="cart-list"></div>
+        <div class="card cart-summary">
+          <div class="cart-sum__row"><span>Товаров</span><b id="sumItems">0 шт.</b></div>
+          <div class="cart-sum__row"><span>Сумма</span><b id="sumSubtotal">0 ₽</b></div>
+          <div class="cart-sum__row"><span>Доставка</span><b id="sumDelivery">0 ₽</b></div>
+          <div class="cart-sum__row cart-sum__total"><span>Итого</span><b id="sumTotal">0 ₽</b></div>
+        </div>
+        <div class="cart-actions">
+          <button class="btn btn-primary cart-pay" type="button" id="payBtn">Оформить заказ</button>
+          <div class="cart-note" id="cartNote" style="display:none;">Заказ создан. Менеджер свяжется с вами.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ── Модалка оформления заказа ────────────────────────────────── -->
+  <div class="order-modal" id="orderModal" aria-modal="true" role="dialog">
+    <div class="order-modal__backdrop" id="orderModalClose"></div>
+    <div class="order-modal__dialog">
+      <button class="order-modal__close" type="button" id="orderModalCloseBtn">×</button>
+
+      <div class="order-modal__title">Оформление заказа</div>
+      <div class="order-modal__subtitle">Заполните данные — мы обработаем заказ и отправим подтверждение.</div>
+
+      <!-- Способ доставки -->
+      <div class="delivery-label">Способ доставки</div>
+      <div class="delivery-options" id="deliveryOptions">
+        <label class="delivery-option">
+          <input type="radio" name="deliveryType" value="CDEK" checked>
+          <span class="delivery-option__icon">📦</span>
+          <span class="delivery-option__name">СДЭК</span>
+        </label>
+        <label class="delivery-option">
+          <input type="radio" name="deliveryType" value="DELOVYE_LINII">
+          <span class="delivery-option__icon">🚚</span>
+          <span class="delivery-option__name">Деловые линии</span>
+        </label>
+        <label class="delivery-option">
+          <input type="radio" name="deliveryType" value="POCHTA_ROSSII">
+          <span class="delivery-option__icon">✉️</span>
+          <span class="delivery-option__name">Почта России</span>
+        </label>
+      </div>
+
+      <!-- Контактные данные -->
+      <div class="order-field">
+        <label for="orderPhone">Телефон *</label>
+        <input type="tel" id="orderPhone" placeholder="+79001234567" autocomplete="tel">
+        <div class="order-field__error" id="orderPhoneError">Введите номер в формате +7XXXXXXXXXX</div>
+      </div>
+
+      <div class="order-field">
+        <label for="orderEmail">E-mail *</label>
+        <input type="email" id="orderEmail" placeholder="you@example.com" autocomplete="email">
+        <div class="order-field__error" id="orderEmailError">Введите корректный e-mail</div>
+      </div>
+
+      <div class="order-field">
+        <label for="orderAddress">Адрес доставки *</label>
+        <input type="text" id="orderAddress" placeholder="Город, улица, дом, квартира" autocomplete="street-address">
+        <div class="order-field__error" id="orderAddressError">Укажите адрес доставки</div>
+      </div>
+
+      <!-- Итого -->
+      <div class="order-modal__total">
+        <span>Итого к оплате</span>
+        <b id="modalTotal">0 ₽</b>
+      </div>
+
+      <!-- СБП-бейдж -->
+      <div class="sbp-badge">
+        <span class="sbp-badge__dot"></span>
+        Оплата через СБП — любой банк
+      </div>
+
+      <button class="btn-order-pay" type="button" id="orderPayBtn">
+        Перейти к оплате →
+      </button>
+      <div class="order-status" id="orderStatus"></div>
+    </div>
+  </div>
+
+  <div id="appFooter"></div>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/pages.js"></script>
+</body>
+</html>

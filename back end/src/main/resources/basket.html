@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Корзина — Germes74</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/footer.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body data-page="cart">
+  <div id="appHeader"></div>
+
+  <main class="page">
+    <div class="container">
+      <div class="cart-top">
+        <div class="crumbs">
+          <a href="index.html">Главная</a>
+          <span> / </span>
+          <span>Моя корзина</span>
+        </div>
+        <button class="btn cart-clear" type="button" id="clearCartTop">Очистить корзину</button>
+      </div>
+
+      <section class="cart-page">
+        <div id="cartEmpty" class="card cart-empty" style="display:none;">Корзина пуста.</div>
+        <div id="cartList" class="cart-list"></div>
+        <div class="card cart-summary">
+          <div class="cart-sum__row"><span>Товаров</span><b id="sumItems">0 шт.</b></div>
+          <div class="cart-sum__row"><span>Сумма</span><b id="sumSubtotal">0 ₽</b></div>
+          <div class="cart-sum__row"><span>Доставка</span><b id="sumDelivery">0 ₽</b></div>
+          <div class="cart-sum__row cart-sum__total"><span>Итого</span><b id="sumTotal">0 ₽</b></div>
+        </div>
+        
+        <div class="cart-actions">
+          <button class="btn btn-primary cart-pay" type="button" id="payBtn">Оформить заказ</button>
+          <div class="cart-note" id="cartNote" style="display:none;">Заказ создан. Менеджер свяжется с вами.</div>
+        </div>
+
+        <div class="sbp-modal" id="sbpModal" aria-hidden="true">
+          <div class="sbp-modal__backdrop" id="sbpClose"></div>
+          <div class="sbp-modal__dialog">
+            <button class="sbp-modal__close" type="button" id="sbpClose">×</button>
+            <div class="sbp-modal__title">Оплата через СБП</div>
+            <div class="sbp-modal__text">Отсканируйте QR-код банковским приложением, затем нажмите «Оплачено».</div>
+            <div class="sbp-qr">
+              <div class="sbp-qr__placeholder">QR СБП</div>
+            </div>
+            <div class="sbp-success" id="sbpSuccess" style="display:none;">Оплата отмечена. Создаём заказ…</div>
+            <button class="btn btn-primary sbp-pay-btn" type="button" id="sbpPaid">Оплачено</button>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <div id="appFooter"></div>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/pages.js"></script>
+</body>
+</html>

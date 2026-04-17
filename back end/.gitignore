@@ -1,0 +1,19 @@
+# ─── [FIX #1] Секреты — никогда не коммитить ─────────────────────────────────
+.env
+.env.*
+application-prod.properties
+application-local.properties
+
+# Если хранишь реальные пароли в application.properties — добавь его тоже:
+# src/main/resources/application.properties
+
+# ─── Java / Maven ─────────────────────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+
+# ─── IDE ──────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
