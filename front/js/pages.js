@@ -52,6 +52,26 @@
     return normalizedQuery.split(/\s+/).filter(Boolean).every((token) => haystack.includes(token));
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // Загрузка данных с бэкенда
+  // ─────────────────────────────────────────────────────────────────
+  const API = "https://germes-backend-production.up.railway.app";
+
+  async function loadDataFromBackend() {
+    const [catsRes, prodsRes] = await Promise.all([
+      fetch(`${API}/api/products/categories`),
+      fetch(`${API}/api/products`)
+    ]);
+    if (!catsRes.ok || !prodsRes.ok) throw new Error("backend_error");
+    const categories = await catsRes.json();
+    const products   = await prodsRes.json();
+    // Перезаписываем глобальные данные живыми данными с бэкенда
+    G.data.categories = categories;
+    G.data.products   = products;
+    // Обновляем G.byId чтобы корзина тоже видела актуальные товары
+    G.byId = (id) => (G.data.products || []).find((p) => p.id === Number(id)) || null;
+    return products;
+  }
 
   function initCatalog() {
     G.renderShell("catalog");
@@ -80,7 +100,8 @@
       { label: "1 кг",   value: "1kg",  pack: 25  },
     ];
 
-    const allProducts = G.data?.products || [];
+    // allProducts теперь изменяемый — будет перезаписан после загрузки
+    let allProducts = G.data?.products || [];
     const headerSearch = document.querySelector(".search-form__input");
 
     const syncSearchUrl = () => {
@@ -353,114 +374,133 @@
     window.addEventListener("resize", syncSidebar);
     syncSidebar();
 
-    render();
+    // ── Показываем заглушку, потом грузим с бэкенда и перерисовываем
+    grid.innerHTML = `<div class="catalog-empty"><div class="catalog-empty__title">Загрузка...</div></div>`;
+
+    loadDataFromBackend()
+      .then((products) => {
+        allProducts = products;
+        render();
+      })
+      .catch((err) => {
+        console.warn("Бэкенд недоступен, используем data.js:", err);
+        // allProducts уже содержит данные из data.js — просто рендерим
+        render();
+      });
   }
 
   function initProduct() {
     G.renderShell("catalog");
     const id = Number(params.get("id") || 13);
-    const product = G.byId(id);
-    if (!product) return;
 
-    const category = (G.data?.categories || []).find((item) => item.id === product.categoryId);
-    const bits = parseProductBits(product);
-    const badges = getBadges(product);
-    const galleryImages = [imgById(product.id), imgById(product.id), imgById(product.id)];
+    const doInit = () => {
+      const product = G.byId(id);
+      if (!product) return;
 
-    const top = document.querySelector(".buybox__top");
-    if (top) {
-      top.innerHTML = `
-        ${badges.inStock ? '<span class="badge badge--ok">В наличии</span>' : '<span class="badge">Под заказ</span>'}
-        ${badges.hot ? '<span class="badge badge--hot">Хит продаж</span>' : ""}
-      `;
-    }
+      const category = (G.data?.categories || []).find((item) => item.id === product.categoryId);
+      const bits = parseProductBits(product);
+      const badges = getBadges(product);
+      const galleryImages = [imgById(product.id), imgById(product.id), imgById(product.id)];
 
-    $("#pTitle").textContent = cleanName(product.name);
-    $("#propType").textContent = bits.type;
-    $("#propMaterial").textContent = bits.material;
-    $("#propWeight").textContent = bits.grams === "—" ? "—" : `${bits.grams} г`;
-    $("#propPack").textContent = bits.pack === "—" ? "—" : `${bits.pack} шт.`;
-    $("#crumbCat").textContent = category?.name || "Категория";
-    $("#crumbCat").href = category?.id === 1 ? "catalog.html?type=nabivnye&variant=litie" : category?.id === 2 ? "catalog.html?type=nabivnye&variant=shtamp" : category?.id === 3 ? "catalog.html?type=samokley&variant=universal&material=pb" : "catalog.html?type=samokley&variant=universal&material=fe";
+      const top = document.querySelector(".buybox__top");
+      if (top) {
+        top.innerHTML = `
+          ${badges.inStock ? '<span class="badge badge--ok">В наличии</span>' : '<span class="badge">Под заказ</span>'}
+          ${badges.hot ? '<span class="badge badge--hot">Хит продаж</span>' : ""}
+        `;
+      }
 
-    const mainImg = $("#mainImg");
-    const thumbs = $("#thumbs");
-    mainImg.src = galleryImages[0];
-    mainImg.alt = product.name;
-    thumbs.innerHTML = galleryImages.map((src, i) => `
-      <button class="thumb${i === 0 ? " is-active" : ""}" type="button" data-src="${src}">
-        <img src="${src}" alt="${product.name}">
-      </button>
-    `).join("");
-    thumbs.addEventListener("click", (e) => {
-      const thumb = e.target.closest(".thumb");
-      if (!thumb) return;
-      mainImg.src = thumb.dataset.src;
-      $$(".thumb", thumbs).forEach((item) => item.classList.toggle("is-active", item === thumb));
-    });
+      $("#pTitle").textContent = cleanName(product.name);
+      $("#propType").textContent = bits.type;
+      $("#propMaterial").textContent = bits.material;
+      $("#propWeight").textContent = bits.grams === "—" ? "—" : `${bits.grams} г`;
+      $("#propPack").textContent = bits.pack === "—" ? "—" : `${bits.pack} шт.`;
+      $("#crumbCat").textContent = category?.name || "Категория";
+      $("#crumbCat").href = category?.id === 1 ? "catalog.html?type=nabivnye&variant=litie" : category?.id === 2 ? "catalog.html?type=nabivnye&variant=shtamp" : category?.id === 3 ? "catalog.html?type=samokley&variant=universal&material=pb" : "catalog.html?type=samokley&variant=universal&material=fe";
 
-    const input = $("#qtyInput");
-    const boxsetWrap = $("#boxsetWrap");
-    const boxsetSelect = $("#boxsetSelect");
-    let packMode = "box";
+      const mainImg = $("#mainImg");
+      const thumbs = $("#thumbs");
+      mainImg.src = galleryImages[0];
+      mainImg.alt = product.name;
+      thumbs.innerHTML = galleryImages.map((src, i) => `
+        <button class="thumb${i === 0 ? " is-active" : ""}" type="button" data-src="${src}">
+          <img src="${src}" alt="${product.name}">
+        </button>
+      `).join("");
+      thumbs.addEventListener("click", (e) => {
+        const thumb = e.target.closest(".thumb");
+        if (!thumb) return;
+        mainImg.src = thumb.dataset.src;
+        $$(".thumb", thumbs).forEach((item) => item.classList.toggle("is-active", item === thumb));
+      });
 
-    const updateProductPrice = () => {
-      const qty = clamp(input.value, 1, 999);
-      const boxMultiplier = packMode === "boxset" ? clamp(boxsetSelect?.value || 10, 8, 12) : 1;
-      const total = Number(product.price) * qty * boxMultiplier;
-      $("#pPrice").textContent = G.fmtRub(total);
-      $("#pOld").textContent = `${Math.round(total * 1.17).toLocaleString("ru-RU")} ₽`;
-      $("#pPer").textContent = bits.pack === "—" ? "" : `${(Number(product.price) / Number(bits.pack)).toFixed(2)} ₽ за шт. · ${packMode === "boxset" ? boxMultiplier + " коробок в боксе" : "1 коробка"} · ${qty} шт.`;
-      $("#packNote").textContent = packMode === "boxset" ? `Бокс: ${boxMultiplier} коробок` : "Одна коробка";
+      const input = $("#qtyInput");
+      const boxsetWrap = $("#boxsetWrap");
+      const boxsetSelect = $("#boxsetSelect");
+      let packMode = "box";
+
+      const updateProductPrice = () => {
+        const qty = clamp(input.value, 1, 999);
+        const boxMultiplier = packMode === "boxset" ? clamp(boxsetSelect?.value || 10, 8, 12) : 1;
+        const total = Number(product.price) * qty * boxMultiplier;
+        $("#pPrice").textContent = G.fmtRub(total);
+        $("#pOld").textContent = `${Math.round(total * 1.17).toLocaleString("ru-RU")} ₽`;
+        $("#pPer").textContent = bits.pack === "—" ? "" : `${(Number(product.price) / Number(bits.pack)).toFixed(2)} ₽ за шт. · ${packMode === "boxset" ? boxMultiplier + " коробок в боксе" : "1 коробка"} · ${qty} шт.`;
+        $("#packNote").textContent = packMode === "boxset" ? `Бокс: ${boxMultiplier} коробок` : "Одна коробка";
+      };
+
+      const sync = () => { input.value = String(clamp(input.value, 1, 999)); updateProductPrice(); };
+      sync();
+
+      $("#qtyMinus").addEventListener("click", () => { input.value = String(Math.max(1, clamp(input.value, 1, 999) - 1)); sync(); });
+      $("#qtyPlus").addEventListener("click", () => { input.value = String(Math.min(999, clamp(input.value, 1, 999) + 1)); sync(); });
+      input.addEventListener("input", sync);
+      input.addEventListener("change", sync);
+      input.addEventListener("keyup", sync);
+      input.addEventListener("mouseup", sync);
+      boxsetSelect?.addEventListener("change", sync);
+      $$("[data-pack-mode]").forEach((btn) => btn.addEventListener("click", () => {
+        packMode = btn.dataset.packMode || "box";
+        $$("[data-pack-mode]").forEach((item) => item.classList.toggle("is-active", item === btn));
+        if (boxsetWrap) boxsetWrap.hidden = packMode !== "boxset";
+        sync();
+      }));
+
+      const buyBtn = $("#buyBtn");
+      buyBtn.textContent = "В корзину";
+      buyBtn.addEventListener("click", () => {
+        if (buyBtn.dataset.busy === "1") return;
+        buyBtn.dataset.busy = "1";
+        const boxMultiplier = packMode === "boxset" ? clamp(boxsetSelect?.value || 10, 8, 12) : 1;
+        G.cart.add(product.id, clamp(input.value, 1, 999) * boxMultiplier).then(() => {
+          G.updateBadge();
+          buyBtn.textContent = "✓ Добавлено";
+          buyBtn.classList.add("is-added");
+        }).catch(() => {
+          alert("Не удалось добавить товар. Проверьте, что backend запущен.");
+        }).finally(() => {
+          setTimeout(() => { buyBtn.textContent = "В корзину"; buyBtn.classList.remove("is-added"); buyBtn.dataset.busy = "0"; }, 1200);
+        });
+      });
+
+      $$('[data-tab]').forEach((button) => {
+        button.addEventListener("click", () => {
+          const name = button.dataset.tab;
+          $$('[data-tab]').forEach((item) => item.classList.toggle('is-active', item.dataset.tab === name));
+          $$('[data-pane]').forEach((item) => item.classList.toggle('is-active', item.dataset.pane === name));
+        });
+      });
     };
 
-    const sync = () => { input.value = String(clamp(input.value, 1, 999)); updateProductPrice(); };
-    sync();
-
-    $("#qtyMinus").addEventListener("click", () => { input.value = String(Math.max(1, clamp(input.value, 1, 999) - 1)); sync(); });
-    $("#qtyPlus").addEventListener("click", () => { input.value = String(Math.min(999, clamp(input.value, 1, 999) + 1)); sync(); });
-    input.addEventListener("input", sync);
-    input.addEventListener("change", sync);
-    input.addEventListener("keyup", sync);
-    input.addEventListener("mouseup", sync);
-    boxsetSelect?.addEventListener("change", sync);
-    $$("[data-pack-mode]").forEach((btn) => btn.addEventListener("click", () => {
-      packMode = btn.dataset.packMode || "box";
-      $$("[data-pack-mode]").forEach((item) => item.classList.toggle("is-active", item === btn));
-      if (boxsetWrap) boxsetWrap.hidden = packMode !== "boxset";
-      sync();
-    }));
-
-    const buyBtn = $("#buyBtn");
-    buyBtn.textContent = "В корзину";
-    buyBtn.addEventListener("click", () => {
-      if (buyBtn.dataset.busy === "1") return;
-      buyBtn.dataset.busy = "1";
-      const boxMultiplier = packMode === "boxset" ? clamp(boxsetSelect?.value || 10, 8, 12) : 1;
-      G.cart.add(product.id, clamp(input.value, 1, 999) * boxMultiplier).then(() => {
-        G.updateBadge();
-        buyBtn.textContent = "✓ Добавлено";
-        buyBtn.classList.add("is-added");
-      }).catch(() => {
-        alert("Не удалось добавить товар. Проверьте, что backend запущен.");
-      }).finally(() => {
-        setTimeout(() => { buyBtn.textContent = "В корзину"; buyBtn.classList.remove("is-added"); buyBtn.dataset.busy = "0"; }, 1200);
-      });
-    });
-
-    $$('[data-tab]').forEach((button) => {
-      button.addEventListener("click", () => {
-        const name = button.dataset.tab;
-        $$('[data-tab]').forEach((item) => item.classList.toggle('is-active', item.dataset.tab === name));
-        $$('[data-pane]').forEach((item) => item.classList.toggle('is-active', item.dataset.pane === name));
-      });
-    });
+    // Грузим актуальные данные с бэкенда, потом инициализируем страницу товара
+    loadDataFromBackend()
+      .catch((err) => console.warn("Бэкенд недоступен, используем data.js:", err))
+      .finally(doInit);
   }
 
   function initCart() {
     G.renderShell("cart");
 
-    // ── DOM-элементы ──────────────────────────────────────────────
     const list      = $("#cartList");
     const empty     = $("#cartEmpty");
     const note      = $("#cartNote");
@@ -482,7 +522,6 @@
       <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
     </svg>`;
 
-    // ── Состояние ─────────────────────────────────────────────────
     const state = {
       pendingOrderId: null,
       pollId: null,
@@ -490,7 +529,6 @@
       secondsLeft: 600,
     };
 
-    // ── Модальное окно ────────────────────────────────────────────
     const openModal = () => {
       if (!modal) return;
       modal.removeAttribute("aria-hidden");
@@ -511,7 +549,6 @@
       state.pendingOrderId = null;
     };
 
-    // ── Статус оплаты ─────────────────────────────────────────────
     const setPaymentStatus = (type, msg) => {
       if (!statusEl) return;
       statusEl.textContent = msg;
@@ -519,7 +556,6 @@
       statusEl.className = "sbp-status" + (type ? ` sbp-status--${type}` : "");
     };
 
-    // ── Таймер ────────────────────────────────────────────────────
     const stopTimer = () => { clearInterval(state.timerId); state.timerId = null; };
     const startTimer = () => {
       state.secondsLeft = 600;
@@ -539,7 +575,6 @@
       state.timerId = setInterval(tick, 1000);
     };
 
-    // ── Поллинг статуса ───────────────────────────────────────────
     const stopPoll = () => { clearInterval(state.pollId); state.pollId = null; };
 
     const startAutoConfirm = () => {
@@ -571,7 +606,6 @@
       }, 2500);
     };
 
-    // ── Рендер корзины ────────────────────────────────────────────
     const render = () => {
       const cart = G.cart.read();
       const rows = cart.items.map((it) => ({ ...it, ...G.byId(it.id) })).filter((it) => it.name);
@@ -603,7 +637,6 @@
       G.updateBadge();
     };
 
-    // ── Обработчики корзины ───────────────────────────────────────
     list?.addEventListener("click", async (e) => {
       const btn = e.target.closest("[data-act]");
       if (!btn) return;
@@ -636,12 +669,10 @@
 
     $("#payBtn")?.addEventListener("click", () => { if (!G.cart.count()) return; openModal(); });
 
-    // Закрытие модалки — по кнопке и по фону
     document.addEventListener("click", (e) => {
       if (e.target.closest(".sbpClose") || e.target.id === "sbpClose") closeModal();
     });
 
-  // ── Создание заказа / показ QR ────────────────────────────────
     createBtn?.addEventListener("click", async () => {
       const customerEmail = (emailInput?.value || "").trim();
       const deliveryType = deliverySelect?.value || "";
@@ -651,13 +682,13 @@
       createBtn.disabled = true;
       createBtn.textContent = "Ожидаем оплату...";
       try {
-        const order = await G.cart.placeOrder({ 
-          customerEmail, 
+        const order = await G.cart.placeOrder({
+          customerEmail,
           customerPhone,
           deliveryAddress,
-          deliveryType, 
-          paymentMethod: "SBP", 
-          paymentConfirmed: false 
+          deliveryType,
+          paymentMethod: "SBP",
+          paymentConfirmed: false
         });
         state.pendingOrderId = order.id;
         if (receiptEl) receiptEl.textContent = order.receiptNumber || "—";
@@ -676,7 +707,7 @@
         createBtn.textContent = "Показать QR для оплаты";
       }
     });
-    // ── Загрузка корзины ──────────────────────────────────────────
+
     G.cart.fetch().then(render).catch(render);
   }
 
