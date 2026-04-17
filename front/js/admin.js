@@ -1,6 +1,6 @@
 (function () {
-  const API_PRODUCTS = "http://localhost:8080/api/products";
-  const API_ORDERS   = "http://localhost:8080/api/orders";
+  const API_PRODUCTS = "https://germes-backend-production.up.railway.app/api/products";
+  const API_ORDERS   = "https://germes-backend-production.up.railway.app/api/orders";
   const AUTH_KEY = "germes_admin_auth";
 
   const escapeHtml = (v) => String(v ?? "")
