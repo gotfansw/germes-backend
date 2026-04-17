@@ -29,7 +29,7 @@ window.GERMES = window.GERMES || {};
   // ──────────────────────────────────────────────────────────────────────────
 
   G.cart = {
-    API: "http://localhost:8080",
+    API: "https://germes-backend-production.up.railway.app",
 
     // Кэш последнего известного состояния корзины (только для badge)
     _cache: null,
