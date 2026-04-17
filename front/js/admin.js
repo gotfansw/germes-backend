@@ -7,12 +7,19 @@
     .replaceAll("&","&amp;").replaceAll("<","&lt;")
     .replaceAll(">","&gt;").replaceAll('"',"&quot;");
 
-  // Маппинг enum -> русский текст
   const ORDER_STATUS_LABELS = {
     NEW:       "Новый",
     PAID:      "Оплачен",
     SHIPPED:   "Отправлен",
     DELIVERED: "Доставлен"
+  };
+
+  // Маппинг способов доставки → чип-класс + метка
+  const DELIVERY_LABELS = {
+    CDEK:    { label: "СДЭК",        cls: "delivery-chip--cdek" },
+    POST:    { label: "Почта РФ",    cls: "delivery-chip--post" },
+    PICKUP:  { label: "Самовывоз",   cls: "delivery-chip--pickup" },
+    COURIER: { label: "Курьер",      cls: "" },
   };
 
   const state = {
@@ -136,7 +143,6 @@
     var filter = el("orderFilter");
     if (!tbody) return;
 
-    // Статистика
     var newCnt  = state.orders.filter(function(o){ return o.status === "NEW"; }).length;
     var paidCnt = state.orders.filter(function(o){ return o.status === "PAID"; }).length;
     var shipCnt = state.orders.filter(function(o){ return o.status === "SHIPPED"; }).length;
@@ -148,17 +154,13 @@
     var sp = el("statProcessing"); if (sp) sp.textContent = paidCnt;
     var sd = el("statDone");       if (sd) sd.textContent = shipCnt + delCnt;
 
-    // Обновляем лейблы статистики
-    var lp = el("labelProcessing"); if (lp) lp.textContent = "Оплачено";
-    var ld = el("labelDone");       if (ld) ld.textContent = "Отправлено/Доставлено";
-
     var filterVal = filter ? filter.value : "";
     var list = filterVal
       ? state.orders.filter(function(o){ return o.status === filterVal; })
       : state.orders;
 
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">\u0417\u0430\u043a\u0430\u0437\u043e\u0432 \u043d\u0435\u0442</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Заказов нет</td></tr>';
       return;
     }
 
@@ -170,11 +172,11 @@
         ? new Date(o.createdAt).toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric"})
         : "\u2014";
 
-      // Товары — каждый с новой строки
+      /* ── ТОВАРЫ ── */
       var itemsHtml = "\u2014";
       if (Array.isArray(o.items) && o.items.length) {
         itemsHtml = o.items.map(function(i) {
-          var name  = escapeHtml(i.productName || i.name || "\u0422\u043e\u0432\u0430\u0440");
+          var name  = escapeHtml(i.productName || i.name || "Товар");
           var qty   = i.quantity || 1;
           var price = (i.price != null)
             ? ' <span style="color:#8b8fa8;font-size:11px;">' + Number(i.price).toLocaleString("ru-RU",{maximumFractionDigits:2}) + ' \u20BD</span>'
@@ -183,27 +185,37 @@
         }).join("");
       }
 
-      // Сумма — поле totalPrice из OrderDTO
-      var rawTotal = o.totalPrice != null ? o.totalPrice
-        : o.total != null ? o.total
-        : null;
-      var totalHtml = "\u2014";
-      if (rawTotal != null) {
-        totalHtml = '<strong>' + Number(rawTotal).toLocaleString("ru-RU",{maximumFractionDigits:2}) + ' \u20BD</strong>';
-      }
+      /* ── СУММА ── */
+      var rawTotal = o.totalPrice != null ? o.totalPrice : o.total != null ? o.total : null;
+      var totalHtml = rawTotal != null
+        ? '<strong>' + Number(rawTotal).toLocaleString("ru-RU",{maximumFractionDigits:2}) + ' \u20BD</strong>'
+        : "\u2014";
 
-      // Email покупателя
-      var email = escapeHtml(o.customerEmail || "");
-      var customerHtml = email
-        ? '<div style="font-size:13px;">' + email + '</div>'
-        : '<span style="color:#8b8fa8;">\u2014</span>';
+      /* ── ПОКУПАТЕЛЬ: email, телефон, доставка, адрес ── */
+      var email    = escapeHtml(o.customerEmail || o.email || "");
+      // Телефон — пробуем разные поля бэкенда
+      var phone    = escapeHtml(o.customerPhone || o.phone || o.contactPhone || "");
+      // Способ доставки
+      var delivRaw = (o.deliveryMethod || o.delivery || "").toUpperCase();
+      var delivInfo = DELIVERY_LABELS[delivRaw] || null;
+      var delivChip = delivInfo
+        ? '<span class="delivery-chip ' + delivInfo.cls + '">' + delivInfo.label + '</span>'
+        : (delivRaw ? '<span class="delivery-chip">' + escapeHtml(o.deliveryMethod || o.delivery || "") + '</span>' : "");
+      // Адрес
+      var address  = escapeHtml(o.deliveryAddress || o.address || o.shippingAddress || "");
 
-      // Дополнительно: трек и квитанция
-      var extraHtml = "";
-      if (o.trackNumber) extraHtml += '<div style="font-size:11px;color:#8b8fa8;margin-top:2px;">Трек: ' + escapeHtml(o.trackNumber) + '</div>';
-      if (o.receiptNumber) extraHtml += '<div style="font-size:11px;color:#8b8fa8;">Квит: ' + escapeHtml(o.receiptNumber) + '</div>';
+      var customerHtml = '<div class="order-customer">';
+      if (email)    customerHtml += '<div class="order-customer__email">' + email + '</div>';
+      if (phone)    customerHtml += '<div class="order-customer__phone">' + phone + '</div>';
+      if (delivChip) customerHtml += '<div style="margin-top:3px;">' + delivChip + '</div>';
+      if (address)  customerHtml += '<div class="order-customer__address">' + address + '</div>';
+      // Трек и квитанция
+      if (o.trackNumber)   customerHtml += '<div class="order-customer__meta">Трек: ' + escapeHtml(o.trackNumber) + '</div>';
+      if (o.receiptNumber) customerHtml += '<div class="order-customer__meta">Квит: ' + escapeHtml(o.receiptNumber) + '</div>';
+      if (!email && !phone && !address) customerHtml += '<span style="color:#8b8fa8;">\u2014</span>';
+      customerHtml += '</div>';
 
-      // Цвет статуса
+      /* ── Цвет статуса ── */
       var statusColor = {
         NEW:       'style="background:#e3f2fd;color:#1565c0;"',
         PAID:      'style="background:#fff8e1;color:#e65100;"',
@@ -214,7 +226,7 @@
       return '<tr>' +
         '<td style="color:#8b8fa8;font-weight:600;">#' + o.id + '</td>' +
         '<td style="color:#8b8fa8;font-size:12px;white-space:nowrap;">' + date + '</td>' +
-        '<td>' + customerHtml + extraHtml + '</td>' +
+        '<td>' + customerHtml + '</td>' +
         '<td class="order-items-cell">' + itemsHtml + '</td>' +
         '<td style="white-space:nowrap;">' + totalHtml + '</td>' +
         '<td>' +
@@ -225,7 +237,7 @@
           '</select>' +
         '</td>' +
         '<td>' +
-          '<button class="tbl-btn tbl-btn--danger" type="button" data-act="order-delete" data-id="' + o.id + '">\u0423\u0434\u0430\u043b\u0438\u0442\u044c</button>' +
+          '<button class="tbl-btn tbl-btn--danger" type="button" data-act="order-delete" data-id="' + o.id + '">Удалить</button>' +
         '</td>' +
       '</tr>';
     }).join("");
@@ -237,8 +249,8 @@
     var pn = el("productName");      if (pn) pn.value = "";
     var pp = el("productPrice");     if (pp) pp.value = "";
     var pc = el("productCategory");  if (pc) pc.value = "";
-    var ml = el("productModeLabel"); if (ml) ml.textContent = "\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u043d\u043e\u0432\u043e\u0433\u043e \u0442\u043e\u0432\u0430\u0440\u0430";
-    var sb = el("saveProductBtn");   if (sb) sb.textContent = "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c";
+    var ml = el("productModeLabel"); if (ml) ml.textContent = "Добавление нового товара";
+    var sb = el("saveProductBtn");   if (sb) sb.textContent = "Сохранить";
   }
 
   function fillProductForm(product) {
@@ -250,8 +262,8 @@
       var cat = state.categories.find(function(c){ return c.name === product.categoryName; });
       pc.value = cat ? String(cat.id) : "";
     }
-    var ml = el("productModeLabel"); if (ml) ml.textContent = "\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435 #" + product.id;
-    var sb = el("saveProductBtn");   if (sb) sb.textContent = "\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c";
+    var ml = el("productModeLabel"); if (ml) ml.textContent = "Редактирование #" + product.id;
+    var sb = el("saveProductBtn");   if (sb) sb.textContent = "Обновить";
     switchTab("products");
   }
 
@@ -269,8 +281,6 @@
 
   async function loadOrders() {
     try {
-      // GET /api/orders — не требует авторизации в твоём контроллере,
-      // но шлём Basic-заголовок на случай если добавишь защиту
       state.orders = (await apiOrders("")) || [];
     } catch(e) {
       console.warn("Orders API:", e.message);
@@ -293,7 +303,7 @@
     var loginVal = (el("adminLogin") && el("adminLogin").value || "").trim();
     var pass     = (el("adminPassword") && el("adminPassword").value || "");
     if (!loginVal || !pass) {
-      setMessage("\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043b\u043e\u0433\u0438\u043d \u0438 \u043f\u0430\u0440\u043e\u043b\u044c.", true);
+      setMessage("Введите логин и пароль.", true);
       return;
     }
     setAuth(loginVal, pass);
@@ -301,15 +311,13 @@
       await loadAll();
       await loadOrders();
       updateVisibility();
-      setMessage("\u0412\u0445\u043e\u0434 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d.");
+      setMessage("Вход выполнен.");
       var pw = el("adminPassword"); if (pw) pw.value = "";
       resetProductForm();
     } catch(err) {
       clearAuth();
       updateVisibility();
-      setMessage(err.message === "auth"
-        ? "\u041d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u043b\u043e\u0433\u0438\u043d \u0438\u043b\u0438 \u043f\u0430\u0440\u043e\u043b\u044c."
-        : err.message, true);
+      setMessage(err.message === "auth" ? "Неверный логин или пароль." : err.message, true);
     }
   }
 
@@ -332,7 +340,7 @@
   }
 
   async function deleteCategory(id) {
-    if (!confirm("\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044e? \u0422\u043e\u0432\u0430\u0440\u044b \u044d\u0442\u043e\u0439 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438 \u0442\u0430\u043a\u0436\u0435 \u0431\u0443\u0434\u0443\u0442 \u0443\u0434\u0430\u043b\u0435\u043d\u044b.")) return;
+    if (!confirm("Удалить категорию? Товары этой категории также будут удалены.")) return;
     await apiProducts("/category/" + id, { method:"DELETE" });
     await loadAll();
   }
@@ -343,7 +351,7 @@
     var price      = Number(el("productPrice") && el("productPrice").value);
     var categoryId = Number(el("productCategory") && el("productCategory").value);
     if (!name || !price || !categoryId) {
-      alert("\u0417\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435, \u0446\u0435\u043d\u0443 \u0438 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044e.");
+      alert("Заполните название, цену и категорию.");
       return;
     }
     var payload = { name: name, price: price, categoryId: categoryId };
@@ -357,7 +365,7 @@
   }
 
   async function deleteProduct(id) {
-    if (!confirm("\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0442\u043e\u0432\u0430\u0440?")) return;
+    if (!confirm("Удалить товар?")) return;
     await apiProducts("/" + id, { method:"DELETE" });
     if (state.editingProductId === id) resetProductForm();
     await loadAll();
@@ -366,11 +374,7 @@
   /* ── CRUD ORDERS ── */
   async function updateOrderStatus(id, status) {
     try {
-      // PATCH /api/orders/{id}/status с телом { "status": "NEW" }
-      await apiOrders("/" + id + "/status", {
-        method: "PATCH",
-        body: JSON.stringify({ status: status })
-      });
+      await apiOrders("/" + id + "/status", { method:"PATCH", body: JSON.stringify({ status: status }) });
     } catch(e) {
       console.warn("Ошибка смены статуса:", e.message);
     }
@@ -380,8 +384,7 @@
   }
 
   async function deleteOrder(id) {
-    if (!confirm("\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0437\u0430\u043a\u0430\u0437 #" + id + "? \u0414\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043d\u0435\u043e\u0431\u0440\u0430\u0442\u0438\u043c\u043e.")) return;
-    // DELETE /api/orders/{id}
+    if (!confirm("Удалить заказ #" + id + "? Действие необратимо.")) return;
     await apiOrders("/" + id, { method:"DELETE" });
     state.orders = state.orders.filter(function(o){ return o.id !== id; });
     renderOrders();
@@ -393,7 +396,7 @@
     el("fillLoginBtn") && el("fillLoginBtn").addEventListener("click", function() {
       var li = el("adminLogin");    if (li) li.value = "admin";
       var pw = el("adminPassword"); if (pw) pw.value = "1234";
-      setMessage("\u0414\u0430\u043d\u043d\u044b\u0435 \u043f\u043e\u0434\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u044b.");
+      setMessage("Данные подставлены.");
     });
     el("adminPassword") && el("adminPassword").addEventListener("keydown", function(e){
       if (e.key === "Enter") login();
@@ -402,7 +405,6 @@
       clearAuth(); updateVisibility(); setMessage("");
     });
 
-    // Sidebar tabs
     document.querySelectorAll(".sidebar-nav__item[data-tab]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         var tab = btn.dataset.tab;
@@ -411,7 +413,6 @@
       });
     });
 
-    // Categories
     el("createCategoryBtn") && el("createCategoryBtn").addEventListener("click", function(){
       createCategory().catch(function(e){ alert(e.message); });
     });
@@ -422,7 +423,6 @@
       loadAll().catch(function(e){ alert(e.message); });
     });
 
-    // Products
     el("refreshProductsBtn") && el("refreshProductsBtn").addEventListener("click", function(){
       loadAll().catch(function(e){ alert(e.message); });
     });
@@ -431,13 +431,11 @@
     });
     el("resetProductBtn") && el("resetProductBtn").addEventListener("click", resetProductForm);
 
-    // Orders
     el("refreshOrdersBtn") && el("refreshOrdersBtn").addEventListener("click", function(){
       loadOrders();
     });
     el("orderFilter") && el("orderFilter").addEventListener("change", renderOrders);
 
-    // Delegated clicks на кнопки таблиц
     document.addEventListener("click", function(e) {
       var btn = e.target.closest("[data-act]");
       if (!btn || btn.tagName === "SELECT") return;
@@ -453,7 +451,6 @@
       if (act === "order-delete")   deleteOrder(id).catch(function(er){ alert(er.message); });
     });
 
-    // Order status select
     document.addEventListener("change", function(e) {
       var sel = e.target.closest("select[data-act='order-status']");
       if (!sel) return;
