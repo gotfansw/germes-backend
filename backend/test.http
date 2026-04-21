@@ -1,0 +1,118 @@
+### ── Продукты ────────────────────────────────────────────────────────────────
+
+### Создать категорию (ADMIN)
+POST http://localhost:8080/api/products/category?name=Грузики
+Authorization: Basic admin 1234
+
+### Создать товар (ADMIN)
+POST http://localhost:8080/api/products?name=Груза на литые диски&price=150&categoryId=1
+Authorization: Basic admin 1234
+
+### Получить все товары (публично)
+GET http://localhost:8080/api/products
+
+### Получить товар по ID (публично)
+GET http://localhost:8080/api/products/1
+
+
+### ── Корзина ──────────────────────────────────────────────────────────────────
+
+### Добавить товар в корзину (публично, сессия через cookie)
+POST http://localhost:8080/api/cart/add?productId=1&quantity=2
+
+### Посмотреть корзину
+GET http://localhost:8080/api/cart
+
+### Обновить количество
+PATCH http://localhost:8080/api/cart/update?productId=1&quantity=3
+
+### Удалить товар из корзины
+DELETE http://localhost:8080/api/cart/remove?productId=1
+
+
+### ── Заказы ───────────────────────────────────────────────────────────────────
+
+### Оформить заказ — доставка СДЭК, оплата СБП (публично)
+POST http://localhost:8080/api/orders/place
+Content-Type: application/json
+
+{
+  "customerEmail": "test@example.com",
+  "customerPhone": "+79001234567",
+  "deliveryAddress": "г. Челябинск, ул. Ленина, д. 1, кв. 10",
+  "deliveryType": "CDEK",
+  "paymentMethod": "SBP"
+}
+
+###
+
+### Оформить заказ — доставка Деловые Линии, оплата при получении
+POST http://localhost:8080/api/orders/place
+Content-Type: application/json
+
+{
+  "customerEmail": "test@example.com",
+  "customerPhone": "+79001234567",
+  "deliveryAddress": "г. Челябинск, ул. Ленина, д. 1, кв. 10",
+  "deliveryType": "DELOVYE_LINII",
+  "paymentMethod": "CASH_ON_DELIVERY"
+}
+
+###
+
+### Проверить статус оплаты заказа (публично)
+GET http://localhost:8080/api/orders/1/payment-status
+
+### Получить QR-код СБП (публично)
+GET http://localhost:8080/api/orders/1/sbp-qr
+
+### Страница оплаты (публично)
+GET http://localhost:8080/api/orders/1/pay
+
+
+### ── Заказы — Админ ───────────────────────────────────────────────────────────
+
+### Получить все заказы (ADMIN)
+GET http://localhost:8080/api/orders
+Authorization: Basic admin 1234
+
+### Получить заказ по ID (ADMIN)
+GET http://localhost:8080/api/orders/1
+Authorization: Basic admin 1234
+
+### Обновить статус оплаты (ADMIN)
+PATCH http://localhost:8080/api/orders/1/payment-status
+Authorization: Basic admin 1234
+Content-Type: application/json
+
+{
+  "paymentStatus": "PAID"
+}
+
+###
+
+### Обновить статус заказа (ADMIN)
+PATCH http://localhost:8080/api/orders/1/status
+Authorization: Basic admin 1234
+Content-Type: application/json
+
+{
+  "status": "SHIPPED"
+}
+
+###
+
+### Добавить трек-номер (ADMIN)
+PATCH http://localhost:8080/api/orders/1/tracking
+Authorization: Basic admin 1234
+Content-Type: application/json
+
+{
+  "trackNumber": "CDEK-123456"
+}
+
+###
+
+### Удалить заказ (ADMIN)
+DELETE http://localhost:8080/api/orders/1
+Authorization: Basic admin 1234
