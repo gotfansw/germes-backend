@@ -28,10 +28,11 @@ public class OrderMailService {
         if (order.getCustomerEmail() == null || order.getCustomerEmail().isBlank()) return;
 
         String subject = switch (order.getPaymentStatus()) {
-            case PENDING -> "Ожидание оплаты заказа #" + order.getId();
-            case PAID -> "Спасибо за оплату заказа #" + order.getId();
-            case FAILED -> "Оплата заказа #" + order.getId() + " отклонена";
-            case CANCELED -> "Оплата заказа #" + order.getId() + " отменена";
+            case PENDING      -> "Ожидание оплаты заказа #" + order.getId();
+            case PAID         -> "Спасибо за оплату заказа #" + order.getId();
+            case FAILED       -> "Оплата заказа #" + order.getId() + " отклонена";
+            case CANCELED     -> "Оплата заказа #" + order.getId() + " отменена";
+            case PAYMENT_FAILED -> "Оплата заказа #" + order.getId() + " не прошла";
         };
 
         String body = buildBody(order);
@@ -70,10 +71,11 @@ public class OrderMailService {
     }
 
     private String formatPaymentStatuses(PaymentStatus current) {
-        return marker(current, PaymentStatus.PENDING) + " Ожидание оплаты\n" +
-                marker(current, PaymentStatus.PAID) + " Оплачено\n" +
-                marker(current, PaymentStatus.FAILED) + " Отказано\n" +
-                marker(current, PaymentStatus.CANCELED) + " Отменено\n";
+        return marker(current, PaymentStatus.PENDING)       + " Ожидание оплаты\n" +
+                marker(current, PaymentStatus.PAID)          + " Оплачено\n"        +
+                marker(current, PaymentStatus.FAILED)        + " Отказано\n"        +
+                marker(current, PaymentStatus.CANCELED)      + " Отменено\n"        +
+                marker(current, PaymentStatus.PAYMENT_FAILED)+ " Платёж не прошёл\n";
     }
 
     private String marker(PaymentStatus current, PaymentStatus status) {
@@ -82,10 +84,11 @@ public class OrderMailService {
 
     private String translatePaymentStatus(PaymentStatus status) {
         return switch (status) {
-            case PENDING -> "Ожидание оплаты";
-            case PAID -> "Оплачено";
-            case FAILED -> "Отказано";
-            case CANCELED -> "Отменено";
+            case PENDING        -> "Ожидание оплаты";
+            case PAID           -> "Оплачено";
+            case FAILED         -> "Отказано";
+            case CANCELED       -> "Отменено";
+            case PAYMENT_FAILED -> "Платёж не прошёл";
         };
     }
 
