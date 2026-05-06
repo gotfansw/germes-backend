@@ -1,9 +1,11 @@
 package org.example.config;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -18,59 +20,68 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+
     @Value("${admin.password}")
     private String adminPassword;
 
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
+
+
+                .csrf(AbstractHttpConfigurer::disable)
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger UI
+                        // Публичные эндпоинты — только чтение каталога и корзина
                         .requestMatchers(
-                                "/swagger-ui.html",
+                                "/api/products/**",
+                                "/api/categories/**",
+                                "/api/cart/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        // Статика
-                        .requestMatchers("/", "/*.html", "/css/**", "/js/**", "/img/**").permitAll()
-                        // Публичное API
-                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers("/api/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/orders/place").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*/payment-status").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*/sbp-qr").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/orders/*/pay").permitAll()
-                        // Админское API
-                        .requestMatchers(HttpMethod.PATCH, "/api/orders/*/payment-status").hasRole("ADMIN")
-                        .anyRequest().hasRole("ADMIN")
+
+                        // Оформление заказа — публично (пользователь не авторизован)
+                        .requestMatchers("POST", "/api/orders/place").permitAll()
+
+
+
+                        .requestMatchers("GET", "/api/orders/*/payment-status").permitAll()
+                        .requestMatchers("GET", "/api/orders/*/pay").permitAll()
+                        .requestMatchers("GET", "/api/orders/*/sbp-qr").permitAll()
+
+                        // Webhook от ЮКассы — публично (подпись проверяется в сервисе)
+                        .requestMatchers("POST", "/api/payment/webhook").permitAll()
+
+
+                        .requestMatchers("/api/orders/**").hasRole("ADMIN")
+
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
-                .httpBasic(httpBasic -> {});
+                .httpBasic(Customizer.withDefaults());
+
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "http://localhost:8080",
-                "https://germes-backend.vercel.app"
-        ));
+
+
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

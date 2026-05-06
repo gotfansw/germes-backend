@@ -1,10 +1,32 @@
 package org.example.model;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum DeliveryType {
-    DELOVYE_LINII, CDEK;
+    CDEK,
+    YANDEX,
+    POCHTA,
+    KAZAN_EXPRESS,
+    DELOVYE_LINII;
 
     @JsonCreator
     public static DeliveryType fromString(String value) {
-        return valueOf(value.toUpperCase());
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("DeliveryType не может быть пустым");
+        }
+        try {
+            return valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Неизвестный тип доставки: '" + value + "'. " +
+                            "Допустимые значения: CDEK, YANDEX, POCHTA, KAZAN_EXPRESS, DELOVYE_LINII"
+            );
+        }
+    }
+
+    @JsonValue
+    public String toJson() {
+        return name().toLowerCase();
     }
 }

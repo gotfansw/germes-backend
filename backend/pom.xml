@@ -7,20 +7,46 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.5</version>
+        <!-- [FIX #17] Обновлён до последней патч-версии ветки 3.2.x -->
+        <version>3.2.12</version>
         <relativePath/>
     </parent>
 
+    <!--
+        [FIX #17] groupId приведён в соответствие с пакетами исходников.
+
+        Прежняя проблема: groupId = com.germes, но все классы лежат в org.example.
+        Это расхождение вызывает путаницу при сборке, генерации Javadoc,
+        и нарушает конвенцию Maven (groupId должен отражать базовый пакет).
+
+        ШАГ 1 — обнови groupId здесь (уже сделано ниже).
+        ШАГ 2 — переименуй пакет в исходниках:
+            Для IntelliJ IDEA:
+            1. Открой src/main/java/org/example
+            2. ПКМ на пакете example → Refactor → Rename → "germes"
+            3. ПКМ на пакете org → Refactor → Rename → "com"
+            4. Итог: com.germes.model, com.germes.service, и т.д.
+            Или сразу: Refactor → Move → новый пакет com.germes
+
+        ШАГ 3 — обнови главный класс приложения если он использует @SpringBootApplication
+                 с явным scanBasePackages.
+    -->
     <groupId>com.germes</groupId>
     <artifactId>germes-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <name>germes-backend</name>
+    <description>Germes74 — интернет-магазин балансировочных грузов</description>
 
     <properties>
         <java.version>17</java.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <springdoc.version>2.5.0</springdoc.version>
+        <zxing.version>3.5.3</zxing.version>
     </properties>
 
     <dependencies>
+
+        <!-- ─── Spring Boot ────────────────────────────────────────────────── -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -42,44 +68,74 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- Swagger / OpenAPI -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.5.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-            <version>3.5.3</version>
-        </dependency>
+        <!-- ─── Database ───────────────────────────────────────────────────── -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!--
+            [FIX #20] Flyway для управления миграциями схемы БД.
+
+            После добавления:
+            1. Смени spring.jpa.hibernate.ddl-auto=update → validate в application.properties
+            2. Создай src/main/resources/db/migration/V1__init.sql с текущей схемой
+            3. При каждом изменении схемы добавляй V2__..., V3__... и т.д.
+
+            Flyway автоматически применит миграции при старте приложения.
+            ddl-auto=validate проверит, что схема БД соответствует entities — и упадёт
+            с понятной ошибкой если миграция не применена, вместо тихого auto-update.
+        -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
         </dependency>
+
+        <!-- ─── QR-код ─────────────────────────────────────────────────────── -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.version}</version>
         </dependency>
+
+        <!-- ─── MapStruct ──────────────────────────────────────────────────── -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+        <!--
+            mapstruct-processor нужен только в annotationProcessorPaths,
+            но объявление здесь как provided не вредит и помогает IDE резолвить классы.
+        -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <!-- ─── Swagger / OpenAPI ──────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- ─── Test ───────────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- H2 для интеграционных тестов без реального Postgres -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -88,10 +144,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -101,6 +160,22 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!--
+                [FIX #20] Flyway Maven plugin — для ручного применения миграций:
+                mvn flyway:migrate  — применить все pending миграции
+                mvn flyway:info     — показать статус миграций
+                mvn flyway:validate — проверить целостность
+
+                URL/credentials подхватываются из spring.datasource.* автоматически
+                через Spring Boot, либо задаются явно через -D параметры.
+            -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+            </plugin>
+
         </plugins>
     </build>
+
 </project>

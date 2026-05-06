@@ -7,8 +7,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @Entity
-@Table(name = "orders")
+@Table(
+        name = "orders",
+        indexes = {
+                @Index(name = "idx_orders_session_id",     columnList = "session_id"),
+                @Index(name = "idx_orders_payment_status", columnList = "payment_status"),
+                @Index(name = "idx_orders_status",         columnList = "status"),
+                @Index(name = "idx_orders_created_at",     columnList = "created_at")
+        }
+)
 public class Order {
 
     @Id
@@ -27,7 +36,6 @@ public class Order {
     @Column(name = "customer_email")
     private String customerEmail;
 
-    // ── НОВЫЕ ПОЛЯ ──────────────────────────────────────────────────────────
     @Column(name = "customer_phone")
     private String customerPhone;
 
@@ -36,7 +44,6 @@ public class Order {
 
     @Column(name = "yookassa_payment_id")
     private String yookassaPaymentId;
-    // ────────────────────────────────────────────────────────────────────────
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delivery_type", nullable = false)
@@ -70,8 +77,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
-
-    // ── Getters / Setters ────────────────────────────────────────────────────
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

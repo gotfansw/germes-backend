@@ -1,10 +1,15 @@
 package org.example.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+
 @Entity
-@Table(name = "cart_items")
+@Table(
+        name = "cart_items",
+        indexes = {
+                @Index(name = "idx_cart_items_cart_id", columnList = "cart_id")
+        }
+)
 public class CartItem {
 
     @Id
@@ -13,8 +18,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
-    @JsonIgnore
-    private Cart cart;
+    private Cart cart;  // @JsonIgnore убран — используй CartItemDTO для сериализации
 
     @ManyToOne
     @JoinColumn(name = "product_id")

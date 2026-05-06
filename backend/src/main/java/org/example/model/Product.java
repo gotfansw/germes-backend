@@ -3,8 +3,22 @@ package org.example.model;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
+/**
+ * [FIX #19] Добавлены:
+ * - unique constraint на name — дублирование продуктов невозможно на уровне БД
+ *   (DataLoader проверяет existsByName, но без constraint возможна гонка)
+ * - индекс на category_id — запросы "продукты по категории" без full scan
+ */
 @Entity
-@Table(name = "products")
+@Table(
+        name = "products",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uq_products_name", columnNames = "name")
+        },
+        indexes = {
+                @Index(name = "idx_products_category_id", columnList = "category_id")
+        }
+)
 public class Product {
 
     @Id

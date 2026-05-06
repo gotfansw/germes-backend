@@ -9,7 +9,6 @@ import org.example.dto.PlaceOrderRequest;
 import org.example.dto.UpdateOrderStatusRequest;
 import org.example.dto.UpdatePaymentStatusRequest;
 import org.example.dto.UpdateTrackingRequest;
-import org.example.model.PaymentStatus;
 import org.example.service.OrderService;
 import org.example.service.QrCodeService;
 import org.springframework.http.MediaType;
@@ -37,6 +36,7 @@ public class OrderController {
                 : session.getId();
     }
 
+    // Публичный — пользователь не авторизован при оформлении заказа
     @PostMapping("/place")
     public OrderDTO placeOrder(@Valid @RequestBody PlaceOrderRequest request,
                                @RequestHeader(value = "X-Session-Id", required = false) String headerSession,
@@ -44,18 +44,28 @@ public class OrderController {
         return orderService.placeOrder(resolveSessionId(headerSession, session), request);
     }
 
+    // Только ADMIN — закрыто в SecurityConfig
     @PatchMapping("/{id}/payment-status")
     public OrderDTO updatePaymentStatus(@PathVariable Long id,
                                         @Valid @RequestBody UpdatePaymentStatusRequest request) {
         return orderService.updatePaymentStatus(id, request.getPaymentStatus());
     }
 
+
     @GetMapping("/{id}/payment-status")
-    public PaymentStatusResponse getPaymentStatus(@PathVariable Long id) {
+    public ResponseEntity<PaymentStatusResponse> getPaymentStatus(@PathVariable Long id) {
         OrderDTO order = orderService.getOrder(id);
-        return new PaymentStatusResponse(order.getId(), order.getPaymentStatus(), order.getReceiptNumber(), order.getTrackNumber());
+        // Возвращаем только публично безопасные поля
+        PaymentStatusResponse response = new PaymentStatusResponse(
+                order.getId(),
+                order.getPaymentStatus(),
+                null,   // receiptNumber — только для владельца/админа
+                null    // trackNumber   — только для владельца/админа
+        );
+        return ResponseEntity.ok(response);
     }
 
+    // Публичный — нужен для перехода пользователя по QR-ссылке
     @GetMapping(value = "/{id}/sbp-qr", produces = "image/svg+xml")
     public ResponseEntity<byte[]> getSbpQr(@PathVariable Long id, HttpServletRequest request) {
         String base = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
@@ -66,10 +76,12 @@ public class OrderController {
                 .body(svg.getBytes(StandardCharsets.UTF_8));
     }
 
+    // Публичный — страница ожидания оплаты, открывается по QR
     @GetMapping(value = "/{id}/pay", produces = MediaType.TEXT_HTML_VALUE)
     public String payPage(@PathVariable Long id) {
-        OrderDTO order = orderService.getOrder(id);  // только читаем, статус НЕ меняем
+        OrderDTO order = orderService.getOrder(id);
 
+        // [FIX #16] Метод safe() удалён — он нигде не использовался
         String html = "<!doctype html>" +
                 "<html lang=\"ru\">" +
                 "<head>" +
@@ -100,28 +112,28 @@ public class OrderController {
 
         return html;
     }
-    private String safe(String value) {
-        return value == null || value.isBlank() ? "—" : value;
-    }
 
+    // Только ADMIN — закрыто в SecurityConfig
     @GetMapping
     public List<OrderDTO> getAllOrders() {
         return orderService.getAllOrders();
     }
 
+    // Только ADMIN — закрыто в SecurityConfig
     @PatchMapping("/{id}/status")
     public OrderDTO updateStatus(@PathVariable Long id,
                                  @Valid @RequestBody UpdateOrderStatusRequest request) {
         return orderService.updateOrderStatus(id, request.getStatus());
     }
 
+    // Только ADMIN — закрыто в SecurityConfig
     @PatchMapping("/{id}/tracking")
     public OrderDTO updateTracking(@PathVariable Long id,
                                    @Valid @RequestBody UpdateTrackingRequest request) {
         return orderService.updateTracking(id, request.getTrackNumber());
     }
 
-    // ─── НОВЫЙ МЕТОД: удаление заказа из админки ───────────────────────────
+    // Только ADMIN — закрыто в SecurityConfig
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
