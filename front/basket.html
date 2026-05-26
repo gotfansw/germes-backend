@@ -47,49 +47,66 @@
   <div class="sbp-modal__backdrop sbpClose"></div>
   <div class="sbp-modal__dialog">
     <button class="sbp-modal__close sbpClose" type="button">×</button>
-    <div class="sbp-modal__title">Оплата через СБП</div>
-
-    <div class="sbp-modal__field">
-      <label>E-mail для уведомления</label>
-      <input class="sbp-modal__input" type="email" id="customerEmail" placeholder="your@email.com">
-    </div>
-    <div class="sbp-modal__field">
-      <label>Способ доставки</label>
-      <select class="sbp-modal__input" id="deliverySelect">
-        <option value="">— выберите —</option>
-        <option value="pickup">Самовывоз</option>
-        <option value="courier">Курьер</option>
-        <option value="post">Почта России</option>
-        <option value="cdek">СДЭК</option>
-      </select>
-    </div>
-    <input id="customerPhone" type="tel" placeholder="+7XXXXXXXXXX" />
-<input id="deliveryAddress" type="text" placeholder="Адрес доставки" />
-
-    <button class="btn btn-primary sbp-pay-btn" type="button" id="createOrderBtn">
-      Показать QR для оплаты
-    </button>
-
-    <div class="sbp-status" id="sbpStatus" style="display:none;"></div>
-
-    <div class="sbp-qr" id="sbpQrWrap" style="display:none;">
-      <a id="sbpQrLink" href="#" target="_blank">
-        <img id="sbpQrImage" src="" alt="QR СБП" style="max-width:260px;">
-      </a>
-    </div>
     
-
-    <div class="sbp-meta" id="sbpMeta" style="display:none;">
-      <div>Номер квитанции: <b id="sbpReceipt">—</b></div>
-      <div>Трек-номер: <b id="sbpTrack">—</b></div>
+    <div class="sbp-modal__header">
+      <div class="sbp-modal__icon">💳</div>
+      <div class="sbp-modal__title">Оформление заказа</div>
+      <div class="sbp-modal__subtitle">Оплата через СБП</div>
     </div>
 
-    <div class="sbp-timer" id="sbpTimer" style="display:none;">
-      Время на оплату: <b id="sbpTimerVal">10:00</b>
-    </div>
+    <div class="sbp-modal__body">
+      <div class="sbp-modal__field">
+        <label class="sbp-modal__label">E-mail для уведомления</label>
+        <input class="sbp-modal__input" type="email" id="customerEmail" placeholder="your@email.com">
+      </div>
 
-    <div class="cart-note" id="cartNote" style="display:none;">
-      Заказ создан. Менеджер свяжется с вами.
+      <div class="sbp-modal__field">
+        <label class="sbp-modal__label">Телефон</label>
+        <input class="sbp-modal__input" id="customerPhone" type="tel" placeholder="+7 (___) ___-__-__">
+      </div>
+
+      <div class="sbp-modal__field">
+        <label class="sbp-modal__label">Способ доставки</label>
+        <select class="sbp-modal__input sbp-modal__select" id="deliverySelect">
+          <option value="">— выберите —</option>
+          <option value="pickup">Самовывоз</option>
+          <option value="cdek">СДЭК</option>
+          <option value="yandex">Яндекс Доставка</option>
+          <option value="avito">Авито Доставка</option>
+          <option value="post">Почта России</option>
+        </select>
+      </div>
+
+      <div class="sbp-modal__field">
+        <label class="sbp-modal__label">Адрес доставки</label>
+        <input class="sbp-modal__input" id="deliveryAddress" type="text" placeholder="Город, улица, дом, квартира">
+      </div>
+
+      <button class="btn btn-primary sbp-pay-btn" type="button" id="createOrderBtn">
+        Показать QR для оплаты
+      </button>
+
+      <div class="sbp-status" id="sbpStatus" style="display:none;"></div>
+
+      <div class="sbp-qr" id="sbpQrWrap" style="display:none;">
+        <a id="sbpQrLink" href="#" target="_blank">
+          <img id="sbpQrImage" src="" alt="QR СБП" style="max-width:220px; border-radius:12px;">
+        </a>
+        <p class="sbp-qr__hint">Отсканируйте QR камерой телефона</p>
+      </div>
+
+      <div class="sbp-meta" id="sbpMeta" style="display:none;">
+        <div class="sbp-meta__row"><span>Номер квитанции</span><b id="sbpReceipt">—</b></div>
+        <div class="sbp-meta__row"><span>Трек-номер</span><b id="sbpTrack">—</b></div>
+      </div>
+
+      <div class="sbp-timer" id="sbpTimer" style="display:none;">
+        ⏱ Время на оплату: <b id="sbpTimerVal">10:00</b>
+      </div>
+
+      <div class="cart-note" id="cartNote" style="display:none;">
+        ✓ Заказ создан. Менеджер свяжется с вами.
+      </div>
     </div>
   </div>
 </div>
