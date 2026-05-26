@@ -24,6 +24,7 @@
           <button class="sidebar__toggle" id="sidebarToggle" type="button">Фильтры</button>
           <div class="sidebar__body" id="sidebarBody">
 
+            <!-- Тип крепления -->
             <div class="filter-group">
               <div class="filter-group__title">Тип крепления</div>
               <div class="filter-group__options">
@@ -32,9 +33,9 @@
                 <button class="filter-tag filter-tag--active" type="button" data-type="">Все</button>
               </div>
             </div>
-
             <hr class="sidebar__divider">
 
+            <!-- Материал -->
             <div class="filter-group">
               <div class="filter-group__title">Материал</div>
               <div class="filter-group__options">
@@ -44,16 +45,39 @@
                 <button class="filter-tag" type="button" data-material="fe">Fe</button>
               </div>
             </div>
-
             <hr class="sidebar__divider">
 
+            <!-- Новые категории -->
+            <div class="filter-group">
+              <div class="filter-group__title">Категория</div>
+              <div class="filter-group__options filter-group__options--column">
+                <button class="filter-tag filter-tag--category" type="button" data-category-id="5">
+                  Груза на литые диски (алюм.)
+                </button>
+                <button class="filter-tag filter-tag--category" type="button" data-category-id="6">
+                  Груза на штампованные диски
+                </button>
+                <button class="filter-tag filter-tag--category" type="button" data-category-id="7">
+                  Самоклеящиеся свинцовые груза
+                </button>
+                <button class="filter-tag filter-tag--category" type="button" data-category-id="8">
+                  Самоклеящиеся груза Zn
+                </button>
+                <button class="filter-tag filter-tag--category filter-tag--active" type="button" data-category-id="">
+                  Все категории
+                </button>
+              </div>
+            </div>
+            <hr class="sidebar__divider">
+
+            <!-- Вес упаковки -->
             <div class="filter-group">
               <div class="filter-group__title">Вес упаковки</div>
               <div class="filter-group__options" id="weightFilters"></div>
             </div>
-
             <hr class="sidebar__divider">
 
+            <!-- Цена -->
             <div class="filter-group">
               <div class="filter-group__title">Цена, Р</div>
               <div class="price-range">
@@ -65,16 +89,15 @@
                 </div>
               </div>
             </div>
-
             <hr class="sidebar__divider">
 
             <div class="sidebar__actions">
               <button class="btn-filter btn-filter--apply" type="button">Показать товары</button>
               <button class="btn-filter btn-filter--reset" id="resetFilters" type="button">Сбросить всё</button>
             </div>
-
           </div>
         </aside>
+
         <section>
           <div class="catalog-header">
             <h1 class="catalog-header__title">Каталог</h1>
@@ -90,5 +113,35 @@
   <script src="js/data.js"></script>
   <script src="js/core.js"></script>
   <script src="js/pages.js"></script>
+
+  <!-- Логика фильтрации по новым категориям -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const categoryBtns = document.querySelectorAll(".filter-tag--category");
+      let activeCategoryId = "";
+
+      categoryBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          // Снять активный со всех кнопок категорий
+          categoryBtns.forEach(b => b.classList.remove("filter-tag--active"));
+          btn.classList.add("filter-tag--active");
+          activeCategoryId = btn.dataset.categoryId || "";
+
+          // Если есть глобальный фильтр — применить
+          if (typeof window.applyFilters === "function") {
+            window.applyFilters({ categoryId: activeCategoryId });
+          }
+        });
+      });
+
+      // Сброс категории при сбросе всех фильтров
+      document.getElementById("resetFilters")?.addEventListener("click", () => {
+        activeCategoryId = "";
+        categoryBtns.forEach(b => b.classList.remove("filter-tag--active"));
+        const allBtn = document.querySelector('.filter-tag--category[data-category-id=""]');
+        allBtn?.classList.add("filter-tag--active");
+      }, true); // capture=true чтобы сработать раньше pages.js
+    });
+  </script>
 </body>
 </html>

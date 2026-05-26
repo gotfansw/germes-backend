@@ -1,12 +1,4 @@
--- =============================================================================
--- V1__init.sql  —  начальная схема Germes74
--- [FIX #20] Flyway миграция вместо ddl-auto=update
---
--- После добавления этого файла:
--- 1. Установи spring.jpa.hibernate.ddl-auto=validate в application.properties
--- 2. Flyway применит эту миграцию при первом старте
--- 3. Все последующие изменения схемы — новые файлы V2__..., V3__...
--- =============================================================================
+-- V1__init.sql
 
 -- ─── Categories ───────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS categories (
@@ -21,16 +13,16 @@ CREATE TABLE IF NOT EXISTS products (
     name        VARCHAR(255)   NOT NULL,
     price       NUMERIC(19, 2) NOT NULL,
     category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
-    CONSTRAINT uq_products_name UNIQUE (name)  -- [FIX #19]
+    CONSTRAINT uq_products_name UNIQUE (name)
 );
 
-CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);  -- [FIX #19]
+CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 
 -- ─── Carts ────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS carts (
     id         BIGSERIAL    PRIMARY KEY,
     session_id VARCHAR(255) NOT NULL,
-    version    BIGINT       NOT NULL DEFAULT 0,  -- [FIX #2] оптимистическая блокировка
+    version    BIGINT       NOT NULL DEFAULT 0,
     CONSTRAINT uq_carts_session_id UNIQUE (session_id)
 );
 
@@ -42,7 +34,7 @@ CREATE TABLE IF NOT EXISTS cart_items (
     quantity   INT       NOT NULL CHECK (quantity > 0)
 );
 
-CREATE INDEX IF NOT EXISTS idx_cart_items_cart_id ON cart_items(cart_id);  -- [FIX #19]
+CREATE INDEX IF NOT EXISTS idx_cart_items_cart_id ON cart_items(cart_id);
 
 -- ─── Orders ───────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS orders (
@@ -63,7 +55,6 @@ CREATE TABLE IF NOT EXISTS orders (
     paid_at              TIMESTAMP
 );
 
--- [FIX #19] Индексы для часто используемых запросов
 CREATE INDEX IF NOT EXISTS idx_orders_session_id     ON orders(session_id);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
 CREATE INDEX IF NOT EXISTS idx_orders_status         ON orders(status);
@@ -79,3 +70,11 @@ CREATE TABLE IF NOT EXISTS order_items (
 );
 
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+
+-- ─── Initial Data ─────────────────────────────────────────────────────────────
+INSERT INTO categories (name) VALUES
+    ('Груза на литые диски (алюминиевые)'),
+    ('Груза на штампованные диски'),
+    ('Самоклеящиеся свинцовые груза'),
+    ('Самоклеящиеся груза Zn')
+ON CONFLICT (name) DO NOTHING;

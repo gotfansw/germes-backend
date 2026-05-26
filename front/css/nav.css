@@ -83,3 +83,114 @@
   background: #fdf2f2;
   color: var(--color-red);
 }
+
+
+/* =====================================================
+   NAV — бургер-меню для мобильных
+   ===================================================== */
+
+.nav__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Бургер-кнопка — скрыта на десктопе */
+.nav__burger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.nav__burger span {
+  display: block;
+  height: 2px;
+  background: var(--color-dark);
+  border-radius: 2px;
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+/* Анимация × при открытом меню */
+.nav__burger--open span:nth-child(1) {
+  transform: translateY(9px) rotate(45deg);
+}
+.nav__burger--open span:nth-child(2) {
+  opacity: 0;
+}
+.nav__burger--open span:nth-child(3) {
+  transform: translateY(-9px) rotate(-45deg);
+}
+
+/* Мобильное меню */
+@media (max-width: 768px) {
+  .nav__burger {
+    display: flex;
+  }
+
+  .nav__list {
+    /* Скрыто — выезжает сверху вниз */
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-bottom: 2px solid var(--color-red);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 200;
+  }
+
+  /* Открытое состояние */
+  .nav__list--open {
+    display: flex;
+  }
+
+  .nav__item {
+    border-bottom: 1px solid var(--color-border);
+  }
+  .nav__item:last-child {
+    border-bottom: none;
+  }
+
+  .nav__link {
+    padding: 14px 16px;
+    font-size: 15px;
+    width: 100%;
+  }
+
+  /* Выпадашка на мобильном — просто показываем под пунктом */
+  .nav__dropdown {
+    position: static;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    background: #fdf2f2;
+    min-width: 0;
+    display: block; /* всегда видна когда родитель открыт */
+  }
+
+  .nav__dropdown a {
+    padding: 10px 24px;
+    font-size: 13px;
+  }
+
+  .nav__dropdown-section-title {
+    padding: 8px 24px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* nav — position relative нужен для абсолютного .nav__list */
+.nav { position: relative; }

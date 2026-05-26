@@ -159,7 +159,6 @@ window.GERMES = window.GERMES || {};
     },
 
     async placeOrder(payload) {
-      
       const res = await fetch(`${G.cart.API}/api/orders/place`, {
         method: "POST",
         credentials: "include",
@@ -247,22 +246,32 @@ window.GERMES = window.GERMES || {};
         </div>
       </header>
       <nav class="nav">
-        <div class="container">
-          <ul class="nav__list">
+        <div class="container nav__container">
+          <ul class="nav__list" id="navList">
             <li class="nav__item">${link("home","index.html","Главная")}</li>
             <li class="nav__item">
               ${link("catalog","catalog.html","Каталог")}
               <div class="nav__dropdown">
+                <div class="nav__dropdown-section-title">Набивные</div>
                 <a href="catalog.html?type=nabivnye&variant=litie">Набивные · литые</a>
                 <a href="catalog.html?type=nabivnye&variant=shtamp">Набивные · штампованные</a>
+                <div class="nav__dropdown-section-title">Самоклейка</div>
                 <a href="catalog.html?type=samokley&variant=universal&material=pb">Самоклейка · Pb</a>
                 <a href="catalog.html?type=samokley&variant=universal&material=fe">Самоклейка · Fe</a>
+                <div class="nav__dropdown-section-title">Новые категории</div>
+                <a href="catalog.html?categoryId=5">Груза на литые диски (алюм.)</a>
+                <a href="catalog.html?categoryId=6">Груза на штампованные диски</a>
+                <a href="catalog.html?categoryId=7">Самоклеящиеся свинцовые груза</a>
+                <a href="catalog.html?categoryId=8">Самоклеящиеся груза Zn</a>
               </div>
             </li>
             <li class="nav__item">${link("delivery","delivery.html","Доставка")}</li>
             <li class="nav__item">${link("contacts","contacts.html","Контакты")}</li>
             <li class="nav__item">${link("about","about.html","О нас")}</li>
           </ul>
+          <button class="nav__burger" id="navBurger" aria-label="Открыть меню">
+            <span></span><span></span><span></span>
+          </button>
         </div>
       </nav>
     `;
@@ -335,11 +344,11 @@ window.GERMES = window.GERMES || {};
         suggestBox?.classList.remove("is-open");
       }
     });
+
     f.innerHTML = `
       <footer>
         <div class="container">
           <div class="footer__grid">
- 
             <div class="footer__cell">
               <div class="footer__col-title">Навигация</div>
               <nav class="footer__links">
@@ -350,12 +359,10 @@ window.GERMES = window.GERMES || {};
                 <a href="about.html">О нас</a>
               </nav>
             </div>
- 
             <div class="footer__cell">
               <div class="footer__col-title">О нас</div>
               <p class="footer__about">Обособленное подразделение «Гермес» гарантирует вам не только качество товара, но и доступную цену!</p>
             </div>
- 
             <div class="footer__cell">
               <div class="footer__col-title">Контакты</div>
               <div class="footer__contacts">
@@ -377,7 +384,6 @@ window.GERMES = window.GERMES || {};
                 </div>
               </div>
             </div>
- 
             <div class="footer__cell">
               <div class="footer__col-title">Время работы</div>
               <div class="footer__hours">
@@ -385,15 +391,12 @@ window.GERMES = window.GERMES || {};
                   <span class="footer__hour-day">Пн–Пт</span>
                   <span class="footer__hour-time">9:00 – 18:00</span>
                 </div>
-                
-            
                 <div class="footer__hour-row">
                   <span class="footer__hour-day">Сб–Вс</span>
                   <span class="footer__hour-time">Выходной</span>
                 </div>
               </div>
             </div>
- 
           </div>
           <div class="footer__bottom">
             <span>© Компания «ГЕРМЕС»</span>
@@ -402,8 +405,33 @@ window.GERMES = window.GERMES || {};
         </div>
       </footer>
     `;
- 
+
     G.updateBadge();
+
+    // Бургер-меню для мобильных
+    const burger  = document.getElementById("navBurger");
+    const navList = document.getElementById("navList");
+    if (burger && navList) {
+      burger.addEventListener("click", function () {
+        const isOpen = navList.classList.toggle("nav__list--open");
+        burger.classList.toggle("nav__burger--open", isOpen);
+        burger.setAttribute("aria-label", isOpen ? "Закрыть меню" : "Открыть меню");
+      });
+      // Закрыть меню при клике на ссылку
+      navList.addEventListener("click", function (e) {
+        if (e.target.tagName === "A") {
+          navList.classList.remove("nav__list--open");
+          burger.classList.remove("nav__burger--open");
+        }
+      });
+      // Закрыть меню при клике вне
+      document.addEventListener("click", function (e) {
+        if (!burger.contains(e.target) && !navList.contains(e.target)) {
+          navList.classList.remove("nav__list--open");
+          burger.classList.remove("nav__burger--open");
+        }
+      });
+    }
   };
 
   window.addEventListener("pageshow", () => G.updateBadge());
