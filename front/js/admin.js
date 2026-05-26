@@ -1,6 +1,6 @@
 (function () {
-  const API_PRODUCTS = "https://germes-gotfa.amvera.run/api/products";
-  const API_ORDERS   = "https://germes-gotfa.amvera.run/api/orders";
+  const API_PRODUCTS = "https://germes-gotfa.amvera.io/api/products";
+  const API_ORDERS   = "https://germes-gotfa.amvera.io/api/orders";
   const AUTH_KEY = "germes_admin_auth";
 
   const escapeHtml = (v) => String(v ?? "")
