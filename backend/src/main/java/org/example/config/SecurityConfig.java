@@ -24,27 +24,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class SecurityConfig {
 
-
     @Value("${admin.password}")
     private String adminPassword;
 
-
-    @Value("${app.cors.allowed-origins}")
+    @Value("#{'${app.cors.allowed-origins}'.split(',')}")
     private List<String> allowedOrigins;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
-                        // Публичные эндпоинты — только чтение каталога и корзина
                         .requestMatchers(
                                 "/api/products/**",
                                 "/api/categories/**",
@@ -52,22 +45,12 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
-
-                        // Оформление заказа — публично (пользователь не авторизован)
                         .requestMatchers("POST", "/api/orders/place").permitAll()
-
-
-
                         .requestMatchers("GET", "/api/orders/*/payment-status").permitAll()
                         .requestMatchers("GET", "/api/orders/*/pay").permitAll()
                         .requestMatchers("GET", "/api/orders/*/sbp-qr").permitAll()
-
-                        // Webhook от ЮКассы — публично (подпись проверяется в сервисе)
                         .requestMatchers("POST", "/api/payment/webhook").permitAll()
-
-
                         .requestMatchers("/api/orders/**").hasRole("ADMIN")
-
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -79,8 +62,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
