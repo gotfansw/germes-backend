@@ -55,7 +55,7 @@
   // ─────────────────────────────────────────────────────────────────
   // Загрузка данных с бэкенда
   // ─────────────────────────────────────────────────────────────────
-  const API = "https://germes-backend-production.up.railway.app";
+  const API = "https://germes-gotfa.amvera.run";
 
   async function loadDataFromBackend() {
     const [catsRes, prodsRes] = await Promise.all([

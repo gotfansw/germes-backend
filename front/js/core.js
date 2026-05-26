@@ -33,7 +33,7 @@ window.GERMES = window.GERMES || {};
   G.byId = (id) => (G.data?.products || []).find((p) => p.id === Number(id)) || null;
 
   G.cart = {
-    API: "https://germes-backend-production.up.railway.app",
+    API: "https://germes-gotfa.amvera.run",
 
     _cache: null,
 
